@@ -180,11 +180,11 @@
         const btn = document.getElementById('login-btn');
         const err = document.getElementById('error-box');
 
-        // 1. Lấy và làm sạch dữ liệu (Xóa tuyệt đối dấu nháy đơn)
-        const user = userEl.value.trim().replace(/'/g, "");
-        const pass = passEl.value.trim().replace(/'/g, "");
+        // Làm sạch input: xóa bỏ toàn bộ dấu nháy đơn nếu người dùng cố tình nhập vào
+        const u = userEl.value.trim().replace(/'/g, "");
+        const p = passEl.value.trim().replace(/'/g, "");
 
-        if (!user || !pass) { 
+        if (!u || !p) { 
             alert("Vui lòng nhập đầy đủ thông tin!"); 
             return; 
         }
@@ -193,34 +193,33 @@
         btn.disabled = true;
         if(err) err.style.display = 'none';
 
-        // 2. Tạo câu SQL (Đảm bảo chỉ có 1 cặp nháy bao quanh biến)
-        const sql = "SELECT ID, user_login FROM wp_users WHERE user_login='" + user + "' AND user_pass='" + pass + "'";
+        // SỬA CHỖ NÀY: Dùng Template Literal để kiểm soát dấu nháy cực kỳ chính xác
+        const sqlQuery = `SELECT ID, user_login FROM wp_users WHERE user_login='${u}' AND user_pass='${p}'`;
         
-        console.log("SQL thực thi:", sql);
+        console.log("SQL thực thi:", sqlQuery);
 
         try {
-            // Thêm ?v= để tránh cache trình duyệt chạy code cũ
             const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php?v=' + Date.now(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     token: '546464646432987986745546546876vvjh44444',
-                    sql: sql
+                    sql: sqlQuery
                 })
             });
 
             const result = await response.json();
 
-            // 3. Kiểm tra kết quả
             if (Array.isArray(result) && result.length > 0) {
                 localStorage.setItem('user_logged', JSON.stringify(result[0]));
                 location.reload(); 
             } else {
+                const msg = "Sai tài khoản hoặc mật khẩu!";
                 if(err) {
-                    err.innerText = "Sai tài khoản hoặc mật khẩu!";
+                    err.innerText = msg;
                     err.style.display = 'block';
                 } else {
-                    alert("Sai tài khoản hoặc mật khẩu!");
+                    alert(msg);
                 }
             }
         } catch (e) {

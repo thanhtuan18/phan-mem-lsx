@@ -1,8 +1,59 @@
-<div class="app-container" id="main-app">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý LSX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS bổ sung cho màn hình Login khi gộp chung */
+        #login-screen {
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999;
+        }
+        .login-card {
+            background: white; padding: 2.5rem; border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
+        }
+        .login-card h2 { text-align: center; margin-bottom: 1.5rem; color: #1f2937; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 5px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+        #login-btn { width: 100%; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        #login-btn:hover { background: #1d4ed8; }
+        .error-msg { background: #fef2f2; color: #b91c1c; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; display: none; border: 1px solid #fee2e2; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen" style="display: none;">
+    <div class="login-card">
+        <h2>QUẢN LÝ SẢN XUẤT</h2>
+        <div id="error-box" class="error-msg"></div>
+        <div class="form-group">
+            <label>Tên đăng nhập</label>
+            <input type="text" id="user" placeholder="Nhập tài khoản">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="pass" placeholder="••••••••">
+        </div>
+        <button id="login-btn" onclick="handleLogin()">ĐĂNG NHẬP</button>
+    </div>
+</div>
+
+<div class="app-container" id="main-app" style="display: none;">
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>BỘ LỌC TÌM KIẾM</h3>
-            <a href="#" onclick="localStorage.removeItem('user_logged'); location.reload();" style="font-size: 11px; color: red;">Đăng xuất</a>
+            <a href="#" onclick="logout()" style="font-size: 11px; color: red;">Đăng xuất</a>
         </div>
         
         <div class="filter-box">
@@ -32,30 +83,15 @@
                 <button class="btn-add-main" onclick="prepareAddNew()">+ THÊM MỚI</button>
             </div>
             <div class="lsx-list" id="lsx-list-items">
-                <div class="lsx-item active" onclick="loadLSXForEdit('LSX-2026-00001', 'Samsung Vina', 'Áo sơ mi nam vạt ngang')">
-                    <div class="lsx-item-top">
-                        <span class="code">LSX-2026-00001</span>
-                        <span class="customer-tag">KH: Samsung Vina</span>
-                    </div>
-                    <div class="lsx-item-name">Áo sơ mi nam vạt ngang</div>
-                    <div class="lsx-item-meta">
-                        <span>📅 05/04/2026</span>
-                        <span class="status-dot processing"></span>
-                    </div>
-                    <div class="lsx-item-progress">
-                        <div class="progress-bg"><div class="progress-fill" style="width: 85%"></div></div>
-                        <span>85%</span>
-                    </div>
                 </div>
-            </div>
         </div>
     </aside>
 
     <main class="main-editor">
         <header class="editor-header">
             <div class="title-group">
-                <h1>CHI TIẾT: <span id="display-lsx-title">LSX-2026-00001</span></h1>
-                <p id="display-sub-info">Chế độ: <strong id="mode-text">Chỉnh sửa</strong></p>
+                <h1>CHI TIẾT: <span id="display-lsx-title">---</span></h1>
+                <p id="display-sub-info">Chế độ: <strong id="mode-text">Đang tải...</strong></p>
             </div>
             <div class="header-actions">
                 <button class="btn-secondary" onclick="cancelAction()">HỦY BỎ</button>
@@ -68,7 +104,7 @@
             <div class="form-grid">
                 <div class="field">
                     <label>Ngày LSX (Chỉ xem)</label>
-                    <input type="text" id="master-date" readonly class="readonly-field" value="Chưa có dữ liệu">
+                    <input type="text" id="master-date" readonly class="readonly-field" value="---">
                 </div>
                 <div class="field">
                     <label>Mã Lệnh sản xuất (LSX)</label>
@@ -117,17 +153,71 @@
                             <th width="5%"></th>
                         </tr>
                     </thead>
-                    <tbody id="detail-body">
-                        </tbody>
+                    <tbody id="detail-body"></tbody>
                 </table>
             </div>
         </section>
     </main>
 </div>
 
-<head>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <script src="script.js"></script>
+<script src="script.js"></script>
+<script>
+    // Logic kiểm tra đăng nhập ngay khi load trang
+    document.addEventListener('DOMContentLoaded', () => {
+        const userLogged = localStorage.getItem('user_logged');
+        if (userLogged) {
+            document.getElementById('main-app').style.display = 'flex';
+            if(typeof fetchLSXList === "function") fetchLSXList();
+        } else {
+            document.getElementById('login-screen').style.display = 'flex';
+        }
+    });
+
+    // Hàm Login
+    async function handleLogin() {
+        const user = document.getElementById('user').value.trim();
+        const pass = document.getElementById('pass').value.trim();
+        const btn = document.getElementById('login-btn');
+        const err = document.getElementById('error-box');
+
+        if (!user || !pass) { alert("Nhập đủ thông tin!"); return; }
+        
+        btn.innerText = "Đang xác thực...";
+        btn.disabled = true;
+
+        const sql = `SELECT ID, user_login FROM wp_users WHERE user_login='${user}' AND user_pass='${pass}'`;
+        
+        try {
+            const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: '546464646432987986745546546876vvjh44444',
+                    sql: sql
+                })
+            });
+            const result = await response.json();
+            if (Array.isArray(result) && result.length > 0) {
+                localStorage.setItem('user_logged', JSON.stringify(result[0]));
+                location.reload(); // Load lại để vào App
+            } else {
+                err.innerText = "Sai tài khoản hoặc mật khẩu!";
+                err.style.display = 'block';
+            }
+        } catch (e) {
+            alert("Lỗi kết nối API");
+        } finally {
+            btn.innerText = "ĐĂNG NHẬP";
+            btn.disabled = false;
+        }
+    }
+
+    function logout() {
+        if(confirm("Xác nhận đăng xuất?")) {
+            localStorage.removeItem('user_logged');
+            location.reload();
+        }
+    }
+</script>
 </body>
+</html>

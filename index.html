@@ -1,0 +1,133 @@
+<div class="app-container" id="main-app">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>BỘ LỌC TÌM KIẾM</h3>
+            <a href="#" onclick="localStorage.removeItem('user_logged'); location.reload();" style="font-size: 11px; color: red;">Đăng xuất</a>
+        </div>
+        
+        <div class="filter-box">
+            <input type="text" id="filter-lsx" placeholder="Tìm LSX, Sản phẩm, Ghi chú...">
+            <input type="text" id="filter-customer" placeholder="Theo khách hàng...">
+            <select id="filter-stage">
+                <option value="">-- Tất cả công đoạn --</option>
+                <option value="cut">Cắt vải</option>
+                <option value="sew">May thành phẩm</option>
+                <option value="qc">Kiểm tra QC</option>
+            </select>
+            <div class="date-range-group">
+                <div class="date-item">
+                    <label>Từ ngày:</label>
+                    <input type="date" id="filter-date-from">
+                </div>
+                <div class="date-item">
+                    <label>Đến ngày:</label>
+                    <input type="date" id="filter-date-to">
+                </div>
+            </div>
+        </div>
+
+        <div class="lsx-list-container">
+            <div class="list-header-flex">
+                <div class="list-label">DANH SÁCH LỆNH SẢN XUẤT</div>
+                <button class="btn-add-main" onclick="prepareAddNew()">+ THÊM MỚI</button>
+            </div>
+            <div class="lsx-list" id="lsx-list-items">
+                <div class="lsx-item active" onclick="loadLSXForEdit('LSX-2026-00001', 'Samsung Vina', 'Áo sơ mi nam vạt ngang')">
+                    <div class="lsx-item-top">
+                        <span class="code">LSX-2026-00001</span>
+                        <span class="customer-tag">KH: Samsung Vina</span>
+                    </div>
+                    <div class="lsx-item-name">Áo sơ mi nam vạt ngang</div>
+                    <div class="lsx-item-meta">
+                        <span>📅 05/04/2026</span>
+                        <span class="status-dot processing"></span>
+                    </div>
+                    <div class="lsx-item-progress">
+                        <div class="progress-bg"><div class="progress-fill" style="width: 85%"></div></div>
+                        <span>85%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-editor">
+        <header class="editor-header">
+            <div class="title-group">
+                <h1>CHI TIẾT: <span id="display-lsx-title">LSX-2026-00001</span></h1>
+                <p id="display-sub-info">Chế độ: <strong id="mode-text">Chỉnh sửa</strong></p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-secondary" onclick="cancelAction()">HỦY BỎ</button>
+                <button class="btn-primary" onclick="saveData()">LƯU DỮ LIỆU</button>
+            </div>
+        </header>
+
+        <section class="form-card master-card">
+            <div class="card-header">Thông tin Lệnh sản xuất (Master)</div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Ngày LSX (Chỉ xem)</label>
+                    <input type="text" id="master-date" readonly class="readonly-field" value="Chưa có dữ liệu">
+                </div>
+                <div class="field">
+                    <label>Mã Lệnh sản xuất (LSX)</label>
+                    <input type="text" id="master-lsx-code" readonly class="readonly-field">
+                </div>
+                <div class="field">
+                    <label>Khách hàng</label>
+                    <input type="text" id="master-customer" placeholder="Nhập tên khách hàng...">
+                </div>
+                <div class="field">
+                    <label>Sản phẩm</label>
+                    <input type="text" id="master-product" placeholder="Tên sản phẩm...">
+                </div>
+                <div class="field">
+                    <label>Trạng thái LSX</label>
+                    <select id="master-status">
+                        <option value="Chưa thực hiện">Chưa thực hiện</option>
+                        <option value="Đang thực hiện">Đang thực hiện</option>
+                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Hủy">Hủy</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Ghi chú Lệnh sản xuất</label>
+                    <input type="text" id="master-note" placeholder="Ghi chú quan trọng cho lệnh này...">
+                </div>
+            </div>
+        </section>
+
+        <section class="form-card detail-card">
+            <div class="card-header-flex">
+                <span>Dữ liệu thống kê công đoạn (Detail)</span>
+                <button class="btn-add" onclick="addNewRow()">+ Thêm công đoạn</button>
+            </div>
+            <div class="table-container">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th width="12%">Ngày thống kê</th>
+                            <th width="15%">Người thống kê</th>
+                            <th width="15%">Mã công đoạn</th>
+                            <th width="10%">SL Mục tiêu</th>
+                            <th width="10%">SL Thực tế</th>
+                            <th width="8%">Tỉ lệ %</th>
+                            <th width="15%">Trạng thái CĐ</th>
+                            <th width="5%"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-body">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<head>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="script.js"></script>
+</body>

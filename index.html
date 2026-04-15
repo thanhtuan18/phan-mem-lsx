@@ -180,7 +180,7 @@
         const btn = document.getElementById('login-btn');
         const err = document.getElementById('error-box');
 
-        // 1. Lấy và làm sạch dữ liệu
+        // 1. Lấy và làm sạch dữ liệu (Xóa tuyệt đối dấu nháy đơn)
         const user = userEl.value.trim().replace(/'/g, "");
         const pass = passEl.value.trim().replace(/'/g, "");
 
@@ -193,13 +193,13 @@
         btn.disabled = true;
         if(err) err.style.display = 'none';
 
-        // 2. Tạo câu SQL (Nối chuỗi kiểu này là chắc chắn nhất)
+        // 2. Tạo câu SQL (Đảm bảo chỉ có 1 cặp nháy bao quanh biến)
         const sql = "SELECT ID, user_login FROM wp_users WHERE user_login='" + user + "' AND user_pass='" + pass + "'";
         
         console.log("SQL thực thi:", sql);
 
         try {
-            // THÊM ?v=... vào sau URL để ép trình duyệt bỏ qua cache cũ
+            // Thêm ?v= để tránh cache trình duyệt chạy code cũ
             const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php?v=' + Date.now(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

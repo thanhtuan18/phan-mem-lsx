@@ -1,4 +1,3 @@
-<script>
 // Cấu hình API
 const API_URL = 'https://quanlytiendosanxuat.technoup.info/api/api_lsx.php'; 
 const API_TOKEN = '546464646432987986745546546876vvjh44444'; 
@@ -19,42 +18,50 @@ async function callDB(sql) {
             })
         });
         
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Lỗi kết nối API');
+        const result = await response.json();
+        
+        // Kiểm tra nếu kết quả trả về có chứa thuộc tính error (từ phía PHP trả về)
+        if (result && result.error) {
+            throw new Error(result.error);
         }
-        return await response.json();
+        
+        return result;
     } catch (e) {
         console.error("Lỗi gọi API:", e.message);
         throw e;
     }
 }
 
-// 2. LOGIC ĐĂNG NHẬP (Dùng localStorage thay cho class WordPress)
+// 2. LOGIC KIỂM TRA ĐĂNG NHẬP (Sửa lỗi redirect)
 function checkLogin() {
     const saved = localStorage.getItem('user_logged');
+    const loginScreen = document.getElementById('login-screen');
+    const mainApp = document.getElementById('main-app');
     
     if (saved) {
         currentUser = JSON.parse(saved);
-        // Hiển thị App và load dữ liệu
-        const appEl = document.getElementById('main-app');
-        if(appEl) appEl.style.display = 'flex';
+        // Hiển thị App
+        if(loginScreen) loginScreen.style.display = 'none';
+        if(mainApp) mainApp.style.display = 'flex';
+        
         fetchLSXList();
     } else {
-        // Chuyển hướng về trang login nếu chưa có thông tin trong localStorage
-        window.location.href = 'login.html';
+        // Hiện màn hình login ngay tại index, không chuyển hướng sang login.html nữa
+        if(loginScreen) loginScreen.style.display = 'flex';
+        if(mainApp) mainApp.style.display = 'none';
     }
 }
 
+// Lắng nghe sự kiện load trang
 document.addEventListener('DOMContentLoaded', checkLogin);
 
-// 3. LOAD DANH SÁCH LSX (Sửa user_id thành user_id)
+// 3. LOAD DANH SÁCH LSX
 async function fetchLSXList() {
     try {
+        // Đảm bảo lấy đúng ID (WordPress thường trả về hoa chữ ID)
         const userId = currentUser ? (currentUser.ID || currentUser.id) : null;
         if (!userId) return;
 
-        // SỬA: Dùng user_id theo đúng cấu trúc database của bạn
         const sql = `SELECT * FROM lsx_master WHERE user_id = ${userId} ORDER BY id DESC LIMIT 50`;
         const result = await callDB(sql);
         
@@ -87,7 +94,7 @@ async function fetchLSXList() {
     }
 }
 
-// 4. LOAD CHI TIẾT (Sửa user_id thành user_id)
+// 4. LOAD CHI TIẾT
 async function loadLSXForEdit(id) {
     isEditMode = true;
     currentMasterId = id;
@@ -96,7 +103,6 @@ async function loadLSXForEdit(id) {
     const userId = currentUser ? (currentUser.ID || currentUser.id) : null;
     if (!userId) return;
 
-    // SỬA: Kiểm tra theo user_id
     const masterData = await callDB(`SELECT * FROM lsx_master WHERE id = ${id} AND user_id = ${userId}`);                                    
     if (masterData && masterData.length > 0) {
         const m = masterData[0];
@@ -121,7 +127,7 @@ async function loadLSXForEdit(id) {
     updateMasterDate();
 }
 
-// 5. LƯU DỮ LIỆU (Sửa user_id thành user_id)
+// 5. LƯU DỮ LIỆU
 async function saveData() {
     const btn = document.querySelector('.btn-primary');
     const userId = currentUser ? (currentUser.ID || currentUser.id) : null;
@@ -140,18 +146,13 @@ async function saveData() {
 
     try {
         if (isEditMode && currentMasterId) {
-            // SỬA: WHERE user_id
             await callDB(`UPDATE lsx_master SET customer_name='${m.cust}', product_name='${m.prod}', status='${m.stat}', note='${m.note}' WHERE id=${currentMasterId} AND user_id=${userId}`);
         } else {
-            // SỬA: INSERT vào user_id
             const response = await callDB(`INSERT INTO lsx_master (lsx_code, customer_name, product_name, status, note, user_id) VALUES ('${m.code}', '${m.cust}', '${m.prod}', '${m.stat}', '${m.note}', ${userId})`);
             
-            if (response.id) {
-                currentMasterId = response.id;
-            } else {
-                const checkId = await callDB(`SELECT id FROM lsx_master WHERE lsx_code='${m.code}' ORDER BY id DESC LIMIT 1`);
-                if (checkId && checkId.length > 0) currentMasterId = checkId[0].id;
-            }
+            // Lấy ID vừa insert
+            const checkId = await callDB(`SELECT id FROM lsx_master WHERE lsx_code='${m.code}' AND user_id=${userId} ORDER BY id DESC LIMIT 1`);
+            if (checkId && checkId.length > 0) currentMasterId = checkId[0].id;
         }
 
         if (currentMasterId) {
@@ -176,14 +177,14 @@ async function saveData() {
         isEditMode = true;
         fetchLSXList();
     } catch (err) {
-        alert("Lỗi lưu dữ liệu: " + err.message);
+        alert("Lưu thất bại: " + err.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "LƯU DỮ LIỆU";
     }
 }
 
-// Các hàm bổ trợ (Giữ nguyên logic cũ)
+// --- CÁC HÀM BỔ TRỢ ---
 function prepareAddNew() {
     isEditMode = false;
     currentMasterId = null;
@@ -205,6 +206,7 @@ function addNewRow() {
 
 function addDetailRow(date, user, stage, target, actual, status) {
     const body = document.getElementById('detail-body');
+    if(!body) return;
     const row = document.createElement('tr');
     row.innerHTML = `
         <td><input type="date" class="row-date" value="${date}" onchange="updateMasterDate()"></td>
@@ -240,9 +242,11 @@ function updateRow(el) {
 
 function updateMasterDate() {
     const dates = Array.from(document.querySelectorAll('.row-date')).map(i => i.value).filter(v => v).sort();
-    if(dates.length > 0) document.getElementById('master-date').value = new Date(dates[0]).toLocaleDateString('vi-VN');
+    const masterDateEl = document.getElementById('master-date');
+    if(dates.length > 0 && masterDateEl) {
+        masterDateEl.value = new Date(dates[0]).toLocaleDateString('vi-VN');
+    }
 }
 
 function removeRow(btn) { btn.closest('tr').remove(); updateMasterDate(); }
 function cancelAction() { if(confirm("Hủy bỏ thay đổi?")) location.reload(); }
-</script>

@@ -48,14 +48,14 @@ function checkLogin() {
 
 document.addEventListener('DOMContentLoaded', checkLogin);
 
-// 3. LOAD DANH SÁCH LSX (Sửa user_id thành created_by)
+// 3. LOAD DANH SÁCH LSX (Sửa user_id thành user_id)
 async function fetchLSXList() {
     try {
         const userId = currentUser ? (currentUser.ID || currentUser.id) : null;
         if (!userId) return;
 
-        // SỬA: Dùng created_by theo đúng cấu trúc database của bạn
-        const sql = `SELECT * FROM lsx_master WHERE created_by = ${userId} ORDER BY id DESC LIMIT 50`;
+        // SỬA: Dùng user_id theo đúng cấu trúc database của bạn
+        const sql = `SELECT * FROM lsx_master WHERE user_id = ${userId} ORDER BY id DESC LIMIT 50`;
         const result = await callDB(sql);
         
         const listContainer = document.getElementById('lsx-list-items');
@@ -87,7 +87,7 @@ async function fetchLSXList() {
     }
 }
 
-// 4. LOAD CHI TIẾT (Sửa user_id thành created_by)
+// 4. LOAD CHI TIẾT (Sửa user_id thành user_id)
 async function loadLSXForEdit(id) {
     isEditMode = true;
     currentMasterId = id;
@@ -96,8 +96,8 @@ async function loadLSXForEdit(id) {
     const userId = currentUser ? (currentUser.ID || currentUser.id) : null;
     if (!userId) return;
 
-    // SỬA: Kiểm tra theo created_by
-    const masterData = await callDB(`SELECT * FROM lsx_master WHERE id = ${id} AND created_by = ${userId}`);                                    
+    // SỬA: Kiểm tra theo user_id
+    const masterData = await callDB(`SELECT * FROM lsx_master WHERE id = ${id} AND user_id = ${userId}`);                                    
     if (masterData && masterData.length > 0) {
         const m = masterData[0];
         document.getElementById('display-lsx-title').innerText = m.lsx_code;
@@ -121,7 +121,7 @@ async function loadLSXForEdit(id) {
     updateMasterDate();
 }
 
-// 5. LƯU DỮ LIỆU (Sửa user_id thành created_by)
+// 5. LƯU DỮ LIỆU (Sửa user_id thành user_id)
 async function saveData() {
     const btn = document.querySelector('.btn-primary');
     const userId = currentUser ? (currentUser.ID || currentUser.id) : null;
@@ -140,11 +140,11 @@ async function saveData() {
 
     try {
         if (isEditMode && currentMasterId) {
-            // SỬA: WHERE created_by
-            await callDB(`UPDATE lsx_master SET customer_name='${m.cust}', product_name='${m.prod}', status='${m.stat}', note='${m.note}' WHERE id=${currentMasterId} AND created_by=${userId}`);
+            // SỬA: WHERE user_id
+            await callDB(`UPDATE lsx_master SET customer_name='${m.cust}', product_name='${m.prod}', status='${m.stat}', note='${m.note}' WHERE id=${currentMasterId} AND user_id=${userId}`);
         } else {
-            // SỬA: INSERT vào created_by
-            const response = await callDB(`INSERT INTO lsx_master (lsx_code, customer_name, product_name, status, note, created_by) VALUES ('${m.code}', '${m.cust}', '${m.prod}', '${m.stat}', '${m.note}', ${userId})`);
+            // SỬA: INSERT vào user_id
+            const response = await callDB(`INSERT INTO lsx_master (lsx_code, customer_name, product_name, status, note, user_id) VALUES ('${m.code}', '${m.cust}', '${m.prod}', '${m.stat}', '${m.note}', ${userId})`);
             
             if (response.id) {
                 currentMasterId = response.id;

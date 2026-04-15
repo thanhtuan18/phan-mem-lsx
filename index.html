@@ -175,36 +175,24 @@
 
     // Hàm Login
     async function handleLogin() {
-        const userEl = document.getElementById('user');
-        const passEl = document.getElementById('pass');
+        const u = document.getElementById('user').value.trim();
+        const p = document.getElementById('pass').value.trim();
         const btn = document.getElementById('login-btn');
         const err = document.getElementById('error-box');
 
-        // Làm sạch input username, giữ nguyên mật khẩu để tránh lỗi ký tự đặc biệt
-        const u = userEl.value.trim().replace(/'/g, "");
-        const p = passEl.value.trim();
-
-        if (!u || !p) { 
-            alert("Vui lòng nhập đầy đủ thông tin!"); 
-            return; 
-        }
+        if (!u || !p) { alert("Nhập đủ thông tin!"); return; }
         
         btn.innerText = "Đang xác thực...";
         btn.disabled = true;
-        if(err) err.style.display = 'none';
-
-        // Tạo câu query đúng format để Backend nhận diện là tác vụ Login
-        const sqlQuery = `SELECT ID, user_login FROM wp_users WHERE user_login='${u}' AND user_pass='${p}'`;
-        
-        console.log("Đang gửi yêu cầu xác thực...");
 
         try {
-            const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php?v=' + Date.now(), {
+            const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     token: '546464646432987986745546546876vvjh44444',
-                    sql: sqlQuery
+                    username: u, // Gửi trực tiếp, không gửi qua SQL
+                    password: p
                 })
             });
 
@@ -214,17 +202,10 @@
                 localStorage.setItem('user_logged', JSON.stringify(result[0]));
                 location.reload(); 
             } else {
-                const msg = "Sai tài khoản hoặc mật khẩu!";
-                if(err) {
-                    err.innerText = msg;
-                    err.style.display = 'block';
-                } else {
-                    alert(msg);
-                }
+                if(err) { err.innerText = "Sai tài khoản hoặc mật khẩu!"; err.style.display = 'block'; }
             }
         } catch (e) {
-            console.error("Lỗi API:", e);
-            alert("Lỗi kết nối API. Hãy nhấn Ctrl+F5 để tải lại trang.");
+            alert("Lỗi kết nối!");
         } finally {
             btn.innerText = "ĐĂNG NHẬP";
             btn.disabled = false;

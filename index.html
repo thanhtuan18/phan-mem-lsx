@@ -180,8 +180,7 @@
         const btn = document.getElementById('login-btn');
         const err = document.getElementById('error-box');
 
-        // 1. Lấy dữ liệu và làm sạch ngay lập tức
-        // .trim() xóa khoảng trắng, .replace(/'/g, "") xóa tất cả dấu nháy đơn
+        // 1. Lấy và làm sạch dữ liệu
         const user = userEl.value.trim().replace(/'/g, "");
         const pass = passEl.value.trim().replace(/'/g, "");
 
@@ -194,14 +193,14 @@
         btn.disabled = true;
         if(err) err.style.display = 'none';
 
-        // 2. Tạo câu SQL an toàn (không bao giờ sợ dư nháy nữa)
+        // 2. Tạo câu SQL (Nối chuỗi kiểu này là chắc chắn nhất)
         const sql = "SELECT ID, user_login FROM wp_users WHERE user_login='" + user + "' AND user_pass='" + pass + "'";
         
-        // Log ra console để bạn kiểm tra (F12 > Console)
         console.log("SQL thực thi:", sql);
 
         try {
-            const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php', {
+            // THÊM ?v=... vào sau URL để ép trình duyệt bỏ qua cache cũ
+            const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php?v=' + Date.now(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -215,7 +214,7 @@
             // 3. Kiểm tra kết quả
             if (Array.isArray(result) && result.length > 0) {
                 localStorage.setItem('user_logged', JSON.stringify(result[0]));
-                location.reload(); // Load lại để vào App
+                location.reload(); 
             } else {
                 if(err) {
                     err.innerText = "Sai tài khoản hoặc mật khẩu!";
@@ -226,17 +225,10 @@
             }
         } catch (e) {
             console.error("Lỗi API:", e);
-            alert("Lỗi kết nối API. Vui lòng kiểm tra internet hoặc file PHP.");
+            alert("Lỗi kết nối API. Hãy nhấn Ctrl+F5 để tải lại trang.");
         } finally {
             btn.innerText = "ĐĂNG NHẬP";
             btn.disabled = false;
-        }
-    }
-
-    function logout() {
-        if(confirm("Xác nhận đăng xuất?")) {
-            localStorage.removeItem('user_logged');
-            location.reload();
         }
     }
 </script>

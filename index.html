@@ -162,28 +162,43 @@
 
 <script src="script.js"></script>
 <script>
-    // Logic kiểm tra đăng nhập ngay khi load trang
+    // 1. Kiểm tra đăng nhập khi vừa mở trang
     document.addEventListener('DOMContentLoaded', () => {
-        const userLogged = localStorage.getItem('user_logged');
-        if (userLogged) {
-            document.getElementById('main-app').style.display = 'flex';
-            if(typeof fetchLSXList === "function") fetchLSXList();
+        // Ưu tiên dùng hàm kiểm tra tập trung trong script.js nếu có
+        if (typeof checkLogin === "function") {
+            checkLogin();
         } else {
-            document.getElementById('login-screen').style.display = 'flex';
+            // Backup logic nếu script.js chưa load kịp
+            const userLogged = localStorage.getItem('user_logged');
+            if (userLogged) {
+                document.getElementById('main-app').style.display = 'flex';
+                if(typeof fetchLSXList === "function") fetchLSXList();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+            }
         }
     });
 
-    // Hàm Login
+    // 2. Hàm xử lý Đăng xuất (Bổ sung để nút Đăng xuất hoạt động)
+    function logout() {
+        if(confirm("Bạn muốn đăng xuất?")) {
+            localStorage.removeItem('user_logged');
+            location.reload();
+        }
+    }
+
+    // 3. Hàm xử lý Đăng nhập (Giữ nguyên logic khớp với app_users)
     async function handleLogin() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
         const btn = document.getElementById('login-btn');
         const err = document.getElementById('error-box');
 
-        if (!u || !p) { alert("Nhập đủ thông tin!"); return; }
+        if (!u || !p) { alert("Vui lòng nhập đủ tài khoản và mật khẩu!"); return; }
         
         btn.innerText = "Đang xác thực...";
         btn.disabled = true;
+        if(err) err.style.display = 'none';
 
         try {
             const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php', {
@@ -191,21 +206,25 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     token: '546464646432987986745546546876vvjh44444',
-                    username: u, // Gửi trực tiếp, không gửi qua SQL
+                    username: u, 
                     password: p
                 })
             });
 
             const result = await response.json();
 
+            // app_users trả về mảng [{id, username}] nên check result.length > 0
             if (Array.isArray(result) && result.length > 0) {
                 localStorage.setItem('user_logged', JSON.stringify(result[0]));
                 location.reload(); 
             } else {
-                if(err) { err.innerText = "Sai tài khoản hoặc mật khẩu!"; err.style.display = 'block'; }
+                if(err) { 
+                    err.innerText = "Tài khoản hoặc mật khẩu không chính xác!"; 
+                    err.style.display = 'block'; 
+                }
             }
         } catch (e) {
-            alert("Lỗi kết nối!");
+            alert("Lỗi kết nối máy chủ!");
         } finally {
             btn.innerText = "ĐĂNG NHẬP";
             btn.disabled = false;

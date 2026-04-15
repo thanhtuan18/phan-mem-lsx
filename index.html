@@ -195,7 +195,7 @@
         if(err) err.style.display = 'none';
 
         // 2. Tạo câu SQL an toàn (không bao giờ sợ dư nháy nữa)
-        const sql = `SELECT ID, user_login FROM wp_users WHERE user_login='${user}' AND user_pass='${pass}'`;
+        const sql = "SELECT ID, user_login FROM wp_users WHERE user_login='" + user + "' AND user_pass='" + pass + "'";
         
         // Log ra console để bạn kiểm tra (F12 > Console)
         console.log("SQL thực thi:", sql);

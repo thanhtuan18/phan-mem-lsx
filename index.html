@@ -137,21 +137,22 @@
 
 <script src="script.js"></script>
 <script>
-    // Logic kiểm tra đăng nhập
+    // 1. Kiểm tra trạng thái đăng nhập khi load trang
     document.addEventListener('DOMContentLoaded', () => {
-        if (typeof checkLogin === "function") {
-            checkLogin();
+        const userLogged = localStorage.getItem('user_logged');
+        if (userLogged) {
+            // Nếu đã có session, hiển thị App và tải dữ liệu
+            document.getElementById('main-app').style.display = 'flex';
+            document.getElementById('login-screen').style.display = 'none';
+            if(typeof fetchLSXList === "function") fetchLSXList();
         } else {
-            const userLogged = localStorage.getItem('user_logged');
-            if (userLogged) {
-                document.getElementById('main-app').style.display = 'flex';
-                if(typeof fetchLSXList === "function") fetchLSXList();
-            } else {
-                document.getElementById('login-screen').style.display = 'flex';
-            }
+            // Nếu chưa, hiện màn hình login
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
         }
     });
 
+    // 2. Hàm đăng xuất
     function logout() {
         if(confirm("Bạn muốn đăng xuất?")) {
             localStorage.removeItem('user_logged');
@@ -159,6 +160,7 @@
         }
     }
 
+    // 3. Xử lý Đăng nhập tương thích với Flask API
     async function handleLogin() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
@@ -172,11 +174,11 @@
         if(err) err.style.display = 'none';
 
         try {
-            const response = await fetch('https://quanlytiendosanxuat.technoup.info/api/api_lsx.php', {
+            // ĐƯỜNG DẪN MỚI: Trỏ về subdomain chứa Flask App của bạn
+            const response = await fetch('https://tiendosanxuat.technoup.info/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    token: '546464646432987986745546546876vvjh44444',
                     username: u, 
                     password: p
                 })
@@ -184,17 +186,24 @@
 
             const result = await response.json();
 
-            if (Array.isArray(result) && result.length > 0) {
-                localStorage.setItem('user_logged', JSON.stringify(result[0]));
+            if (result.status === "success") {
+                // LƯU Ý: Lưu cả thông tin user và TOKEN vào localStorage
+                // Chúng ta gộp token vào object user để các hàm cũ không bị lỗi
+                const userData = {
+                    ...result.user,
+                    token: result.token
+                };
+                localStorage.setItem('user_logged', JSON.stringify(userData));
                 location.reload(); 
             } else {
                 if(err) { 
-                    err.innerText = "Tài khoản hoặc mật khẩu không chính xác!"; 
+                    err.innerText = result.message || "Tài khoản hoặc mật khẩu không chính xác!"; 
                     err.style.display = 'block'; 
                 }
             }
         } catch (e) {
-            alert("Lỗi kết nối máy chủ!");
+            console.error("Login Error:", e);
+            alert("Lỗi kết nối máy chủ Flask!");
         } finally {
             btn.innerText = "ĐĂNG NHẬP";
             btn.disabled = false;

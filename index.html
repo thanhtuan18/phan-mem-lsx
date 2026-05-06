@@ -200,56 +200,39 @@
     async function handleLogin() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
-        const btn = document.getElementById('login-btn');
         
-        console.log("%c--- BẮT ĐẦU CHẨN ĐOÁN KẾT NỐI ---", "color: blue; font-weight: bold;");
-        console.log("URL API đang gọi:", `${API_BASE}/auth/login`);
-        
-        btn.innerText = "ĐANG CHẨN ĐOÁN...";
-        btn.disabled = true;
+        console.clear();
+        console.log("%c--- KIỂM TRA ĐƯỜNG TRUYỀN TOÀN DIỆN ---", "background: #222; color: #bada55; font-size: 15px;");
+
+        // 1. Kiểm tra DNS thực tế từ phía Client
+        try {
+            const checkDNS = await fetch(`https://cloudflare-dns.com/query?name=api-sx.technoup.info&type=A`, { method: 'GET' });
+            const dnsRes = await checkDNS.json();
+            console.log("Phản hồi DNS Quốc tế:", dnsRes.Answer ? "ĐÃ THÔNG" : "CHƯA THÔNG");
+        } catch(e) { console.log("Không kiểm tra được DNS quốc tế"); }
 
         try {
-            // Bước 1: Kiểm tra xem Server có phản hồi cơ bản không (Ping)
-            console.log("Bước 1: Gửi tín hiệu kiểm tra Server (Pre-flight)...");
-            const ping = await fetch(API_BASE.replace('/api', '/'), { method: 'GET' });
-            console.log("Kết quả Bước 1: Server phản hồi mã", ping.status);
-
-            // Bước 2: Gửi lệnh Login thực tế
-            console.log("Bước 2: Gửi dữ liệu xác thực...");
+            // 2. Ép gửi request không dùng Cache
             const response = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache', // Ép không dùng DNS cache cũ
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: u, password: p })
             });
 
-            console.log("Kết quả Bước 2: HTTP Status", response.status);
             const result = await response.json();
-            console.log("Dữ liệu Server trả về:", result);
-
-            if (result.status === "success") {
-                alert("KẾT NỐI THÀNH CÔNG!");
-                // Xử lý logic lưu token như cũ...
-            } else {
-                alert("SERVER TỪ CHỐI: " + result.message);
-            }
+            console.log("Server Response:", result);
+            if (result.status === "success") alert("OK!");
 
         } catch (error) {
-            // ĐÂY LÀ ĐOẠN QUAN TRỌNG NHẤT ĐỂ BIẾT TẠI SAO LỖI
-            console.error("%c--- THÔNG TIN LỖI CHI TIẾT ---", "color: red; font-weight: bold;");
-            console.error("Tên lỗi:", error.name);
+            console.group("CHI TIẾT LỖI KẾT NỐI");
+            console.error("Loại lỗi:", error.name);
             console.error("Thông điệp:", error.message);
-            console.error("Chi tiết stack:", error.stack);
-
-            let msg = "KHÔNG THỂ CHẠM TỚI SERVER.\n";
-            if (error.message.includes('fetch')) {
-                msg += "- Nguyên nhân 1: SSL của API chưa bật (Domain đang báo 'Not Secure').\n";
-                msg += "- Nguyên nhân 2: Lỗi CORS (Server Flask chưa mở cửa cho GitHub).\n";
-                msg += "- Nguyên nhân 3: Domain API bị sai/chết.";
-            }
-            alert("LỖI CHẨN ĐOÁN:\n" + msg);
-        } finally {
-            btn.innerText = "ĐĂNG NHẬP";
-            btn.disabled = false;
+            console.warn("Gợi ý: Nếu là ERR_NAME_NOT_RESOLVED, hãy thử đổi mạng (4G) hoặc Clear DNS Cache máy tính.");
+            console.groupEnd();
+            
+            alert("LỖI KẾT NỐI: " + error.message);
         }
     }
 

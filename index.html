@@ -152,7 +152,7 @@
             const payload = JSON.parse(atob(userData.token.split('.')[1]));
             const now = Math.floor(Date.now() / 1000);
 
-            if (payload.exp < (now + 60)) { // Làm mới nếu còn dưới 1 phút
+            if (payload.exp < (now + 300)) { // Làm mới nếu còn dưới 5 phút
                 const res = await fetch(`${API_BASE}/auth/refresh`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -173,6 +173,7 @@
         showLogin(false);
             fetchLSXList();
         } catch (e) {
+            console.error("Auth check error:", e);
             logoutForced();
         }
     });
@@ -200,66 +201,63 @@
     async function handleLogin() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
-        const loginBtn = document.getElementById('login-btn');
+        const btn = document.getElementById('login-btn');
+        const err = document.getElementById('error-box');
+
+        if (!u || !p) { alert("Vui lòng nhập đủ tài khoản và mật khẩu!"); return; }
         
-        // Tạo URL đầy đủ để kiểm tra
-        const fullUrl = `${API_BASE}/auth/login`;
-        
-        console.clear();
-        console.log("%c--- BẮT ĐẦU CHẨN ĐOÁN KẾT NỐI ---", "color: blue; font-weight: bold; font-size: 14px;");
-        console.log("1. Biến API_BASE hiện tại:", API_BASE);
-        console.log("2. URL API đích:", fullUrl);
-        
-        loginBtn.innerText = "ĐANG KIỂM TRA...";
-        loginBtn.disabled = true;
+        btn.innerText = "Đang xác thực...";
+        btn.disabled = true;
+        if(err) err.style.display = 'none';
 
         try {
-            console.log("3. Đang gửi yêu cầu (Requesting)...");
-            const response = await fetch(fullUrl, {
+            // ĐƯỜNG DẪN MỚI: Trỏ về subdomain chứa Flask App của bạn
+            const response = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: u, password: p })
+                body: JSON.stringify({
+                    username: u, 
+                    password: p
+                })
             });
 
-            console.log("4. Phản hồi từ Server nhận được. HTTP Status:", response.status);
             const result = await response.json();
-            console.log("5. Dữ liệu JSON trả về:", result);
 
             if (result.status === "success") {
-                alert("KẾT NỐI THÀNH CÔNG!");
+                // LƯU Ý: Lưu cả thông tin user và TOKEN vào localStorage
+                // Chúng ta gộp token vào object user để các hàm cũ không bị lỗi
+                const userData = {
+                    ...result.user,
+                    token: result.token,
+                    refresh_token: result.refresh_token // PHẢI LƯU THÊM DÒNG NÀY
+                };
+                localStorage.setItem('user_logged', JSON.stringify(userData));
+                location.reload(); 
             } else {
-                console.warn("Server trả về lỗi logic:", result.message);
-                alert("LỖI LOGIC: " + result.message);
+                if(err) { 
+                    err.innerText = result.message || "Tài khoản hoặc mật khẩu không chính xác!"; 
+                    err.style.display = 'block'; 
+                }
             }
-
-        } catch (error) {
-            // ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT
-            console.error("%c--- PHÁT HIỆN LỖI CHÍ MẠNG ---", "color: red; font-weight: bold;");
-            console.error("Tên lỗi (Name):", error.name);
-            console.error("Thông điệp (Message):", error.message);
-            console.error("Chi tiết lỗi (Stack):", error.stack);
-
-            let huong_dan = "";
-            if (error.message.includes("Failed to fetch")) {
-                huong_dan = "Nguyên nhân có thể là:\n" +
-                            "A. API chưa bật HTTPS hoặc Chứng chỉ SSL không hợp lệ (Trình duyệt chặn).\n" +
-                            "B. Lỗi CORS (Backend chưa cho phép tên miền Frontend).\n" +
-                            "C. Sai đường dẫn (URL) dẫn đến không tìm thấy server.";
-            }
-            alert("LỖI DEBUG:\n" + error.message + "\n\n" + huong_dan);
+        } catch (e) {
+            console.error("Login Error:", e);
+            alert("Lỗi kết nối máy chủ Flask!");
         } finally {
-            loginBtn.innerText = "ĐĂNG NHẬP";
-            loginBtn.disabled = false;
+            btn.innerText = "ĐĂNG NHẬP";
+            btn.disabled = false;
         }
     }
 
-    // 4. Lấy danh sách LSX
+    // 3. Lấy danh sách LSX (Có bắt lỗi 401)
     async function fetchLSXList() {
         const userData = JSON.parse(localStorage.getItem('user_logged'));
         try {
             const res = await fetch(`${API_BASE}/lsx/list`, {
                 headers: { 'Authorization': `Bearer ${userData.token}` }
             });
+            
+            if (res.status === 401) return logoutForced();
+
             const result = await res.json();
             if (result.status === "success" && typeof renderLSXList === "function") {
                 renderLSXList(result.data);
@@ -267,11 +265,13 @@
         } catch (e) { console.error("Lỗi tải danh sách:", e); }
     }
 
-    // 5. Lưu dữ liệu
+    // 4. Lưu dữ liệu (Đã sửa để lấy cả dữ liệu bảng Detail)
     async function saveData() {
         const userData = JSON.parse(localStorage.getItem('user_logged'));
         const btn = document.querySelector('.btn-primary');
-        const data = {
+        
+        // Thu thập thông tin Master
+        const masterData = {
             lsx_code: document.getElementById('master-lsx-code').value,
             customer: document.getElementById('master-customer').value,
             product: document.getElementById('master-product').value,
@@ -279,7 +279,26 @@
             note: document.getElementById('master-note').value
         };
 
-        if(!data.lsx_code) return alert("Không có mã LSX để lưu!");
+        if(!masterData.lsx_code) return alert("Không có mã LSX để lưu!");
+
+        // THU THẬP DỮ LIỆU DETAIL TỪ BẢNG (Chỗ này cực kỳ quan trọng)
+        const details = [];
+        const rows = document.querySelectorAll('#detail-body tr');
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input, select');
+            if (inputs.length > 0) {
+                details.append({
+                    date_stat: inputs[0].value,
+                    worker: inputs[1].value,
+                    stage_code: inputs[2].value,
+                    target: inputs[3].value,
+                    actual: inputs[4].value,
+                    status_cd: inputs[6].value
+                });
+            }
+        });
+
+        const fullData = { ...masterData, details: details };
 
         btn.innerText = "ĐANG LƯU...";
         btn.disabled = true;
@@ -291,8 +310,11 @@
                     'Authorization': `Bearer ${userData.token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(fullData)
             });
+
+            if (res.status === 401) return logoutForced();
+
             const result = await res.json();
             if(result.status === "success") {
                 alert("Lưu thành công!");

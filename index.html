@@ -197,55 +197,7 @@
     }
 
     // 3. Xử lý Đăng nhập tương thích với Flask API
-    async function handleLogin() {
-        const u = document.getElementById('user').value.trim();
-        const p = document.getElementById('pass').value.trim();
-        const btn = document.getElementById('login-btn');
-        const err = document.getElementById('error-box');
-
-        if (!u || !p) { alert("Vui lòng nhập đủ tài khoản và mật khẩu!"); return; }
-        
-        btn.innerText = "Đang xác thực...";
-        btn.disabled = true;
-        if(err) err.style.display = 'none';
-
-        try {
-            // ĐƯỜNG DẪN MỚI: Trỏ về subdomain chứa Flask App của bạn
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: u, 
-                    password: p
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.status === "success") {
-                // LƯU Ý: Lưu cả thông tin user và TOKEN vào localStorage
-                // Chúng ta gộp token vào object user để các hàm cũ không bị lỗi
-                const userData = {
-                    ...result.user,
-                    token: result.token,
-                    refresh_token: result.refresh_token // PHẢI LƯU THÊM DÒNG NÀY
-                };
-                localStorage.setItem('user_logged', JSON.stringify(userData));
-                location.reload(); 
-            } else {
-                if(err) { 
-                    err.innerText = result.message || "Tài khoản hoặc mật khẩu không chính xác!"; 
-                    err.style.display = 'block'; 
-                }
-            }
-        } catch (e) {
-            console.error("Login Error:", e);
-            alert("Lỗi kết nối máy chủ Flask!");
-        } finally {
-            btn.innerText = "ĐĂNG NHẬP";
-            btn.disabled = false;
-        }
-    }
+    ync function handleLogi
 
     // 4. Lấy danh sách LSX
     async function fetchLSXList() {

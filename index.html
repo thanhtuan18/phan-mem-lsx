@@ -200,49 +200,56 @@
     async function handleLogin() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
+        const loginBtn = document.getElementById('login-btn');
+        
+        // Tạo URL đầy đủ để kiểm tra
+        const fullUrl = `${API_BASE}/auth/login`;
         
         console.clear();
-        console.log("%c--- HỆ THỐNG KIỂM TRA CHUYÊN SÂU ---", "color: yellow; background: black; padding: 5px;");
-
-        // KIỂM TRA 1: Soi kỹ URL
-        const finalUrl = `${API_BASE}/auth/login`;
-        console.log("1. Giá trị API_BASE gốc:", API_BASE);
-        console.log("2. URL cuối cùng sau khi ghép:", finalUrl);
+        console.log("%c--- BẮT ĐẦU CHẨN ĐOÁN KẾT NỐI ---", "color: blue; font-weight: bold; font-size: 14px;");
+        console.log("1. Biến API_BASE hiện tại:", API_BASE);
+        console.log("2. URL API đích:", fullUrl);
         
-        if (finalUrl.includes('//-sx')) {
-            console.error("CRITICAL: URL đang bị thiếu tiền tố 'api'. Kiểm tra lại dòng khai báo biến API_BASE!");
-        }
+        loginBtn.innerText = "ĐANG KIỂM TRA...";
+        loginBtn.disabled = true;
 
-        // KIỂM TRA 2: Thử kết nối trực tiếp không qua API_BASE
-        console.log("3. Đang thử ping domain chuẩn (api-sx.technoup.info)...");
-        
         try {
-            const testReq = await fetch('https://api-sx.technoup.info/api/auth/login', {
-                method: 'OPTIONS' // Kiểm tra quyền truy cập (CORS)
-            });
-            console.log("Kết quả ping domain chuẩn:", testReq.status);
-        } catch (e) {
-            console.warn("Ping domain chuẩn thất bại. Chi tiết:", e.message);
-        }
-
-        // KIỂM TRA 3: Thực hiện Login và bắt lỗi hệ thống
-        try {
-            const response = await fetch(finalUrl, {
+            console.log("3. Đang gửi yêu cầu (Requesting)...");
+            const response = await fetch(fullUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: u, password: p })
             });
 
-            const data = await response.json();
-            console.log("Dữ liệu nhận về:", data);
-        } catch (err) {
-            console.group("BẢN TIN LỖI CHI TIẾT");
-            console.log("Tên lỗi:", err.name);
-            console.log("Thông điệp:", err.message);
-            console.log("Trình duyệt chặn do:", finalUrl.startsWith('https://-') ? "URL sai định dạng" : "Lỗi khác");
-            console.groupEnd();
-            
-            alert("LỖI KỸ THUẬT: Mở F12 - tab Console để xem dòng 'URL cuối cùng' là gì.");
+            console.log("4. Phản hồi từ Server nhận được. HTTP Status:", response.status);
+            const result = await response.json();
+            console.log("5. Dữ liệu JSON trả về:", result);
+
+            if (result.status === "success") {
+                alert("KẾT NỐI THÀNH CÔNG!");
+            } else {
+                console.warn("Server trả về lỗi logic:", result.message);
+                alert("LỖI LOGIC: " + result.message);
+            }
+
+        } catch (error) {
+            // ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT
+            console.error("%c--- PHÁT HIỆN LỖI CHÍ MẠNG ---", "color: red; font-weight: bold;");
+            console.error("Tên lỗi (Name):", error.name);
+            console.error("Thông điệp (Message):", error.message);
+            console.error("Chi tiết lỗi (Stack):", error.stack);
+
+            let huong_dan = "";
+            if (error.message.includes("Failed to fetch")) {
+                huong_dan = "Nguyên nhân có thể là:\n" +
+                            "A. API chưa bật HTTPS hoặc Chứng chỉ SSL không hợp lệ (Trình duyệt chặn).\n" +
+                            "B. Lỗi CORS (Backend chưa cho phép tên miền Frontend).\n" +
+                            "C. Sai đường dẫn (URL) dẫn đến không tìm thấy server.";
+            }
+            alert("LỖI DEBUG:\n" + error.message + "\n\n" + huong_dan);
+        } finally {
+            loginBtn.innerText = "ĐĂNG NHẬP";
+            loginBtn.disabled = false;
         }
     }
 

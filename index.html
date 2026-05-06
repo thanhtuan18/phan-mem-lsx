@@ -1,94 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý LSX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="login-screen" style="display: none;">
+    <div class="login-card">
+        <h2>QUẢN LÝ SẢN XUẤT</h2>
+        <div id="error-box" class="error-msg"></div>
+        <div class="form-group">
+            <label>Tên đăng nhập</label>
+            <input type="text" id="user" placeholder="Nhập tài khoản">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="pass" placeholder="Nhập mật khẩu">
+        </div>
+        <button id="login-btn" onclick="handleLogin()">ĐĂNG NHẬP</button>
+    </div>
+</div>
+
+<div class="app-container" id="main-app" style="display: none;">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>BỘ LỌC TÌM KIẾM</h3>
+            <a href="#" onclick="logout()" style="font-size: 11px; color: red;">Đăng xuất</a>
+        </div>
+        
+        <div class="filter-box">
+            <input type="text" id="filter-lsx" placeholder="Tìm LSX, Sản phẩm, Ghi chú...">
+            <input type="text" id="filter-customer" placeholder="Theo khách hàng...">
+            <select id="filter-stage">
+                <option value="">-- Tất cả công đoạn --</option>
+                <option value="cut">Cắt vải</option>
+                <option value="sew">May thành phẩm</option>
+                <option value="qc">Kiểm tra QC</option>
+            </select>
+            <div class="date-range-group">
+                <div class="date-item">
+                    <label>Từ ngày:</label>
+                    <input type="date" id="filter-date-from">
+                </div>
+                <div class="date-item">
+                    <label>Đến ngày:</label>
+                    <input type="date" id="filter-date-to">
+                </div>
+            </div>
+        </div>
+
+        <div class="lsx-list-container">
+            <div class="list-header-flex">
+                <div class="list-label">DANH SÁCH LỆNH SẢN XUẤT</div>
+                <button class="btn-add-main" onclick="prepareAddNew()">+ THÊM MỚI</button>
+            </div>
+            <div class="lsx-list" id="lsx-list-items"></div>
+        </div>
+    </aside>
+
+    <main class="main-editor">
+        <header class="editor-header">
+            <div class="title-group">
+                <h1>CHI TIẾT: <span id="display-lsx-title">---</span></h1>
+                <p id="display-sub-info">Chế độ: <strong id="mode-text">Đang tải...</strong></p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-secondary" onclick="cancelAction()">HỦY BỎ</button>
+                <button class="btn-primary" onclick="saveData()">LƯU DỮ LIỆU</button>
+            </div>
+        </header>
+
+        <section class="form-card master-card">
+            <div class="card-header">Thông tin Lệnh sản xuất (Master)</div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Ngày LSX (Chỉ xem)</label>
+                    <input type="text" id="master-date" readonly class="readonly-field" value="---">
+                </div>
+                <div class="field">
+                    <label>Mã Lệnh sản xuất (LSX)</label>
+                    <input type="text" id="master-lsx-code" readonly class="readonly-field">
+                </div>
+                <div class="field">
+                    <label>Khách hàng</label>
+                    <input type="text" id="master-customer" placeholder="Nhập tên khách hàng...">
+                </div>
+                <div class="field">
+                    <label>Sản phẩm</label>
+                    <input type="text" id="master-product" placeholder="Tên sản phẩm...">
+                </div>
+                <div class="field">
+                    <label>Trạng thái LSX</label>
+                    <select id="master-status">
+                        <option value="Chưa thực hiện">Chưa thực hiện</option>
+                        <option value="Đang thực hiện">Đang thực hiện</option>
+                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Hủy">Hủy</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Ghi chú Lệnh sản xuất</label>
+                    <input type="text" id="master-note" placeholder="Ghi chú quan trọng cho lệnh này...">
+                </div>
+            </div>
+        </section>
+
+        <section class="form-card detail-card">
+            <div class="card-header-flex">
+                <span>Dữ liệu thống kê công đoạn (Detail)</span>
+                <button class="btn-add" onclick="addNewRow()">+ Thêm công đoạn</button>
+            </div>
+            <div class="table-container">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th width="12%">Ngày thống kê</th>
+                            <th width="15%">Người thống kê</th>
+                            <th width="15%">Mã công đoạn</th>
+                            <th width="10%">SL Mục tiêu</th>
+                            <th width="10%">SL Thực tế</th>
+                            <th width="8%">Tỉ lệ %</th>
+                            <th width="15%">Trạng thái CĐ</th>
+                            <th width="5%"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="script.js"></script>
 <script>
-    // Hàm hiển thị log debug ngay trên màn hình (thay vì chỉ console)
-    function logDebug(message, isError = false) {
-        const errorBox = document.getElementById('error-box');
-        if (errorBox) {
-            errorBox.style.display = 'block';
-            errorBox.style.padding = '10px';
-            errorBox.style.whiteSpace = 'pre-wrap';
-            errorBox.style.textAlign = 'left';
-            errorBox.style.fontSize = '12px';
-            errorBox.style.backgroundColor = isError ? '#ffebee' : '#e8f5e9';
-            errorBox.style.color = isError ? '#c62828' : '#2e7d32';
-            errorBox.innerHTML += `> ${message}\n`;
+    // 1. Kiểm tra trạng thái đăng nhập khi load trang
+    document.addEventListener('DOMContentLoaded', async () => {
+        const userLoggedStr = localStorage.getItem('user_logged');
+        if (!userLoggedStr) {
+            showLogin(true);
+            return;
         }
-        console.log(`[DEBUG]: ${message}`);
+
+        let userData = JSON.parse(userLoggedStr);
+        
+        // Kiểm tra Access Token
+        const payload = JSON.parse(atob(userData.token.split('.')[1]));
+        const now = Math.floor(Date.now() / 1000);
+
+        if (payload.exp < now) {
+            console.log("Access Token hết hạn, đang thử làm mới...");
+            
+            // Thử dùng Refresh Token để đổi mã mới
+            try {
+                const res = await fetch('https://tiendosanxuat.technoup.info/api/auth/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: userData.refresh_token })
+                });
+
+                const result = await res.json();
+
+                if (result.status === "success") {
+                    // Cập nhật Access Token mới vào bộ nhớ
+                    userData.token = result.token;
+                    localStorage.setItem('user_logged', JSON.stringify(userData));
+                    console.log("Đã làm mới mã thành công.");
+                } else {
+                    // Refresh Token cũng hết hạn
+                    logoutForced();
+                    return;
+                }
+            } catch (e) {
+                logoutForced();
+                return;
+            }
+        }
+
+        // Nếu mọi thứ ổn, vào app
+        showLogin(false);
+        if(typeof fetchLSXList === "function") fetchLSXList();
+    });
+
+    function showLogin(isLogin) {
+        document.getElementById('login-screen').style.display = isLogin ? 'flex' : 'none';
+        document.getElementById('main-app').style.display = isLogin ? 'none' : 'flex';
     }
 
+    function logoutForced() {
+        alert("Phiên làm việc đã kết thúc sau 7 ngày. Vui lòng đăng nhập lại.");
+        localStorage.removeItem('user_logged');
+        location.reload();
+    }
+
+    // 2. Hàm đăng xuất
+    function logout() {
+        if(confirm("Bạn muốn đăng xuất?")) {
+            localStorage.removeItem('user_logged');
+            location.reload();
+        }
+    }
+
+    // 3. Xử lý Đăng nhập tương thích với Flask API
     async function handleLogin() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
         const btn = document.getElementById('login-btn');
-        const errBox = document.getElementById('error-box');
+        const err = document.getElementById('error-box');
 
-        // Reset thông báo lỗi
-        if(errBox) errBox.innerHTML = "";
-        logDebug("Bắt đầu thực hiện handleLogin...");
-
-        if (!u || !p) {
-            logDebug("LỖI: Chưa nhập User hoặc Pass", true);
-            return;
-        }
-
-        btn.innerText = "ĐANG XÁC THỰC...";
+        if (!u || !p) { alert("Vui lòng nhập đủ tài khoản và mật khẩu!"); return; }
+        
+        btn.innerText = "Đang xác thực...";
         btn.disabled = true;
+        if(err) err.style.display = 'none';
 
         try {
-            const API_URL = 'https://tiendosanxuat.technoup.info/api/auth/login';
-            logDebug(`Đang gửi yêu cầu tới: ${API_URL}`);
-            
-            // 1. Kiểm tra kết nối HTTPS cơ bản
-            logDebug("Kiểm tra kết nối mạng (Network check)...");
-
-            const response = await fetch(API_URL, {
+            // ĐƯỜNG DẪN MỚI: Trỏ về subdomain chứa Flask App của bạn
+            const response = await fetch('https://api-sx.technoup.info/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: u, password: p })
+                body: JSON.stringify({
+                    username: u, 
+                    password: p
+                })
             });
 
-            logDebug(`Server phản hồi: HTTP ${response.status} (${response.statusText})`);
-
             const result = await response.json();
-            logDebug(`Nội dung phản hồi: ${JSON.stringify(result)}`);
 
-            if (response.ok && result.status === "success") {
-                logDebug("ĐĂNG NHẬP THÀNH CÔNG! Đang lưu session...");
-                localStorage.setItem('user_logged', JSON.stringify({
+            if (result.status === "success") {
+                // LƯU Ý: Lưu cả thông tin user và TOKEN vào localStorage
+                // Chúng ta gộp token vào object user để các hàm cũ không bị lỗi
+                const userData = {
                     ...result.user,
                     token: result.token,
-                    refresh_token: result.refresh_token
-                }));
-                setTimeout(() => location.reload(), 1000);
+                    refresh_token: result.refresh_token // PHẢI LƯU THÊM DÒNG NÀY
+                };
+                localStorage.setItem('user_logged', JSON.stringify(userData));
+                location.reload(); 
             } else {
-                logDebug(`Backend từ chối: ${result.message || 'Lỗi không xác định'}`, true);
+                if(err) { 
+                    err.innerText = result.message || "Tài khoản hoặc mật khẩu không chính xác!"; 
+                    err.style.display = 'block'; 
+                }
             }
-
         } catch (e) {
-            // ĐOẠN NÀY SẼ CHỈ RA CHÍNH XÁC NGUYÊN NHÂN
-            logDebug("--- PHÂN TÍCH LỖI KẾT NỐI ---", true);
-            logDebug(`Tên lỗi: ${e.name}`, true);
-            logDebug(`Chi tiết: ${e.message}`, true);
-
-            if (e.name === 'TypeError' && e.message.includes('fetch')) {
-                logDebug("CHẨN ĐOÁN: Có thể do lỗi SSL/HTTPS hoặc CORS.", true);
-                logDebug("Hành động: Hãy mở tab mới truy cập trực tiếp link API xem có báo 'Site unsafe' không.", true);
-            }
-            
-            console.error("Full Error Object:", e);
+            console.error("Login Error:", e);
+            alert("Lỗi kết nối máy chủ Flask!");
         } finally {
             btn.innerText = "ĐĂNG NHẬP";
             btn.disabled = false;
         }
     }
-
-    // Tự động kiểm tra trạng thái ngay khi mở trang
-    document.addEventListener('DOMContentLoaded', () => {
-        logDebug("Hệ thống khởi động. Trạng thái: Sẵn sàng.");
-        logDebug(`Tên miền hiện tại: ${window.location.hostname}`);
-        logDebug(`Giao thức: ${window.location.protocol}`);
-        
-        if (window.location.protocol !== 'https:') {
-            logDebug("CẢNH BÁO: Bạn không dùng HTTPS, trình duyệt sẽ chặn yêu cầu tới API!", true);
-        }
-    });
 </script>
+</body>
+</html>

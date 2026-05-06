@@ -202,44 +202,54 @@
         const p = document.getElementById('pass').value.trim();
         const btn = document.getElementById('login-btn');
         
-        console.log("=== BẮT ĐẦU DEBUG LOGIN ===");
-        console.log("1. Kiểm tra URL API:", API_BASE);
+        console.log("%c--- BẮT ĐẦU CHẨN ĐOÁN KẾT NỐI ---", "color: blue; font-weight: bold;");
+        console.log("URL API đang gọi:", `${API_BASE}/auth/login`);
         
-        btn.innerText = "Đang kiểm tra...";
-        
-        try {
-            // Bước A: Kiểm tra xem server có tồn tại không (Ping thử)
-            console.log("2. Đang gửi yêu cầu kiểm tra server...");
-            const ping = await fetch(API_BASE.replace('/api', '/'), { method: 'GET' }).catch(e => {
-                throw new Error("KHÔNG THỂ KẾT NỐI SERVER (Có thể do SSL hoặc DNS): " + e.message);
-            });
-            console.log("3. Trạng thái Server:", ping.status);
+        btn.innerText = "ĐANG CHẨN ĐOÁN...";
+        btn.disabled = true;
 
-            // Bước B: Gửi lệnh Login thực tế
-            console.log("4. Gửi yêu cầu POST Login...");
+        try {
+            // Bước 1: Kiểm tra xem Server có phản hồi cơ bản không (Ping)
+            console.log("Bước 1: Gửi tín hiệu kiểm tra Server (Pre-flight)...");
+            const ping = await fetch(API_BASE.replace('/api', '/'), { method: 'GET' });
+            console.log("Kết quả Bước 1: Server phản hồi mã", ping.status);
+
+            // Bước 2: Gửi lệnh Login thực tế
+            console.log("Bước 2: Gửi dữ liệu xác thực...");
             const response = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: u, password: p })
             });
 
-            console.log("5. HTTP Status code:", response.status);
-            
+            console.log("Kết quả Bước 2: HTTP Status", response.status);
             const result = await response.json();
-            console.log("6. Dữ liệu nhận được:", result);
+            console.log("Dữ liệu Server trả về:", result);
 
             if (result.status === "success") {
-                alert("Login OK!");
-                // Lưu dữ liệu như cũ...
+                alert("KẾT NỐI THÀNH CÔNG!");
+                // Xử lý logic lưu token như cũ...
             } else {
-                alert("Server từ chối: " + result.message);
+                alert("SERVER TỪ CHỐI: " + result.message);
             }
 
         } catch (error) {
-            console.error("!!! LỖI CHI TIẾT:", error);
-            alert("LỖI DEBUG:\n" + error.message + "\n\n(Hãy nhấn F12, chọn tab Console để xem chi tiết nhất)");
+            // ĐÂY LÀ ĐOẠN QUAN TRỌNG NHẤT ĐỂ BIẾT TẠI SAO LỖI
+            console.error("%c--- THÔNG TIN LỖI CHI TIẾT ---", "color: red; font-weight: bold;");
+            console.error("Tên lỗi:", error.name);
+            console.error("Thông điệp:", error.message);
+            console.error("Chi tiết stack:", error.stack);
+
+            let msg = "KHÔNG THỂ CHẠM TỚI SERVER.\n";
+            if (error.message.includes('fetch')) {
+                msg += "- Nguyên nhân 1: SSL của API chưa bật (Domain đang báo 'Not Secure').\n";
+                msg += "- Nguyên nhân 2: Lỗi CORS (Server Flask chưa mở cửa cho GitHub).\n";
+                msg += "- Nguyên nhân 3: Domain API bị sai/chết.";
+            }
+            alert("LỖI CHẨN ĐOÁN:\n" + msg);
         } finally {
             btn.innerText = "ĐĂNG NHẬP";
+            btn.disabled = false;
         }
     }
 

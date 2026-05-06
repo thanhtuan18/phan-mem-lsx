@@ -135,7 +135,7 @@
     </main>
 </div>
 
-<script src="script.js"></script>
+<!-- <script src="script.js"></script> -->
 <script>
     const API_BASE = 'https://api-sx.technoup.info/api';
 
@@ -334,9 +334,19 @@
     function prepareAddNew() {
         document.getElementById('display-lsx-title').innerText = "TẠO MỚI";
         document.getElementById('mode-text').innerText = "Thêm mới";
-        document.querySelectorAll('input').forEach(i => i.value = '');
+        
+        // Chỉ xóa các ô nhập liệu Master
+        document.getElementById('master-customer').value = '';
+        document.getElementById('master-product').value = '';
+        document.getElementById('master-note').value = '';
+        document.getElementById('master-status').value = 'Chưa thực hiện';
+        
+        // Làm trống bảng chi tiết
         document.getElementById('detail-body').innerHTML = '';
+        
+        // Gán mã và ngày mới
         document.getElementById('master-lsx-code').value = "LSX-" + Date.now().toString().slice(-6);
+        document.getElementById('master-date').value = new Date().toLocaleDateString('vi-VN');
     }
 
     function cancelAction() {
@@ -364,14 +374,14 @@
         const rows = document.querySelectorAll('#detail-body tr');
         rows.forEach(row => {
             const inputs = row.querySelectorAll('input, select');
-            if (inputs.length > 0) {
-                details.append({
+            if (inputs.length > 6) {
+                details.push({
                     date_stat: inputs[0].value,
                     worker: inputs[1].value,
                     stage_code: inputs[2].value,
                     target: inputs[3].value,
                     actual: inputs[4].value,
-                    status_cd: inputs[6].value
+                    status_cd: inputs[5].value // Đã sửa từ index 6 thành 5
                 });
             }
         });
@@ -401,6 +411,15 @@
         } catch (e) { alert("Lỗi kết nối máy chủ!"); }
         finally { btn.innerText = "LƯU DỮ LIỆU"; btn.disabled = false; }
     }
+    
+    // BỔ SUNG: Code xử lý bộ lọc tìm kiếm nhanh
+    document.getElementById('filter-lsx').addEventListener('input', function(e) {
+        const val = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.lsx-item');
+        items.forEach(item => {
+            item.style.display = item.innerText.toLowerCase().includes(val) ? 'block' : 'none';
+        });
+    });
 
 </script>
 </body>

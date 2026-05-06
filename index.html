@@ -265,6 +265,84 @@
         } catch (e) { console.error("Lỗi tải danh sách:", e); }
     }
 
+    // --- BỔ SUNG: Hiển thị danh sách lên Sidebar ---
+    function renderLSXList(data) {
+        const container = document.getElementById('lsx-list-items');
+        container.innerHTML = '';
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'lsx-item'; // Hãy đảm bảo có class này trong style.css
+            div.style = "padding:10px; border-bottom:1px solid #eee; cursor:pointer";
+            div.onclick = () => loadDetail(item.id);
+            div.innerHTML = `
+                <div style="font-weight:600">${item.lsx_code}</div>
+                <div style="font-size:12px; color:#666">${item.customer_name || 'Khách lẻ'}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // --- BỔ SUNG: Thêm dòng vào bảng công đoạn ---
+    function addNewRow(data = {}) {
+        const tbody = document.getElementById('detail-body');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="date" value="${data.record_date || ''}"></td>
+            <td><input type="text" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
+            <td><input type="text" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
+            <td><input type="number" value="${data.target_quantity || 0}"></td>
+            <td><input type="number" value="${data.actual_quantity || 0}"></td>
+            <td>${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+            <td>
+                <select>
+                    <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
+                    <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
+                </select>
+            </td>
+            <td><button onclick="this.parentElement.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer">✕</button></td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    // --- BỔ SUNG: Tải chi tiết 1 LSX ---
+    async function loadDetail(id) {
+        const userData = JSON.parse(localStorage.getItem('user_logged'));
+        try {
+            const res = await fetch(`${API_BASE}/lsx/detail/${id}`, {
+                headers: { 'Authorization': `Bearer ${userData.token}` }
+            });
+            const result = await res.json();
+            const master = result.master;
+            const details = result.details;
+
+            document.getElementById('display-lsx-title').innerText = master.lsx_code;
+            document.getElementById('mode-text').innerText = "Chỉnh sửa";
+            document.getElementById('master-lsx-code').value = master.lsx_code;
+            document.getElementById('master-customer').value = master.customer_name;
+            document.getElementById('master-product').value = master.product_name;
+            document.getElementById('master-status').value = master.status;
+            document.getElementById('master-note').value = master.note;
+            document.getElementById('master-date').value = master.created_at || '---';
+
+            const tbody = document.getElementById('detail-body');
+            tbody.innerHTML = '';
+            details.forEach(d => addNewRow(d));
+        } catch (e) { alert("Lỗi tải chi tiết!"); }
+    }
+
+    // --- BỔ SUNG: Chế độ thêm mới ---
+    function prepareAddNew() {
+        document.getElementById('display-lsx-title').innerText = "TẠO MỚI";
+        document.getElementById('mode-text').innerText = "Thêm mới";
+        document.querySelectorAll('input').forEach(i => i.value = '');
+        document.getElementById('detail-body').innerHTML = '';
+        document.getElementById('master-lsx-code').value = "LSX-" + Date.now().toString().slice(-6);
+    }
+
+    function cancelAction() {
+        if(confirm("Hủy bỏ thay đổi?")) fetchLSXList();
+    }
+
     // 4. Lưu dữ liệu (Đã sửa để lấy cả dữ liệu bảng Detail)
     async function saveData() {
         const userData = JSON.parse(localStorage.getItem('user_logged'));

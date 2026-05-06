@@ -197,7 +197,51 @@
     }
 
     // 3. Xử lý Đăng nhập tương thích với Flask API
-    ync function handleLogi
+    async function handleLogin() {
+        const u = document.getElementById('user').value.trim();
+        const p = document.getElementById('pass').value.trim();
+        const btn = document.getElementById('login-btn');
+        
+        console.log("=== BẮT ĐẦU DEBUG LOGIN ===");
+        console.log("1. Kiểm tra URL API:", API_BASE);
+        
+        btn.innerText = "Đang kiểm tra...";
+        
+        try {
+            // Bước A: Kiểm tra xem server có tồn tại không (Ping thử)
+            console.log("2. Đang gửi yêu cầu kiểm tra server...");
+            const ping = await fetch(API_BASE.replace('/api', '/'), { method: 'GET' }).catch(e => {
+                throw new Error("KHÔNG THỂ KẾT NỐI SERVER (Có thể do SSL hoặc DNS): " + e.message);
+            });
+            console.log("3. Trạng thái Server:", ping.status);
+
+            // Bước B: Gửi lệnh Login thực tế
+            console.log("4. Gửi yêu cầu POST Login...");
+            const response = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+
+            console.log("5. HTTP Status code:", response.status);
+            
+            const result = await response.json();
+            console.log("6. Dữ liệu nhận được:", result);
+
+            if (result.status === "success") {
+                alert("Login OK!");
+                // Lưu dữ liệu như cũ...
+            } else {
+                alert("Server từ chối: " + result.message);
+            }
+
+        } catch (error) {
+            console.error("!!! LỖI CHI TIẾT:", error);
+            alert("LỖI DEBUG:\n" + error.message + "\n\n(Hãy nhấn F12, chọn tab Console để xem chi tiết nhất)");
+        } finally {
+            btn.innerText = "ĐĂNG NHẬP";
+        }
+    }
 
     // 4. Lấy danh sách LSX
     async function fetchLSXList() {

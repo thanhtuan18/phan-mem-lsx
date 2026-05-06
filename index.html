@@ -138,19 +138,63 @@
 <script src="script.js"></script>
 <script>
     // 1. Kiểm tra trạng thái đăng nhập khi load trang
-    document.addEventListener('DOMContentLoaded', () => {
-        const userLogged = localStorage.getItem('user_logged');
-        if (userLogged) {
-            // Nếu đã có session, hiển thị App và tải dữ liệu
-            document.getElementById('main-app').style.display = 'flex';
-            document.getElementById('login-screen').style.display = 'none';
-            if(typeof fetchLSXList === "function") fetchLSXList();
-        } else {
-            // Nếu chưa, hiện màn hình login
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('main-app').style.display = 'none';
+    document.addEventListener('DOMContentLoaded', async () => {
+        const userLoggedStr = localStorage.getItem('user_logged');
+        if (!userLoggedStr) {
+            showLogin(true);
+            return;
         }
+
+        let userData = JSON.parse(userLoggedStr);
+        
+        // Kiểm tra Access Token
+        const payload = JSON.parse(atob(userData.token.split('.')[1]));
+        const now = Math.floor(Date.now() / 1000);
+
+        if (payload.exp < now) {
+            console.log("Access Token hết hạn, đang thử làm mới...");
+            
+            // Thử dùng Refresh Token để đổi mã mới
+            try {
+                const res = await fetch('https://tiendosanxuat.technoup.info/api/auth/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: userData.refresh_token })
+                });
+
+                const result = await res.json();
+
+                if (result.status === "success") {
+                    // Cập nhật Access Token mới vào bộ nhớ
+                    userData.token = result.token;
+                    localStorage.setItem('user_logged', JSON.stringify(userData));
+                    console.log("Đã làm mới mã thành công.");
+                } else {
+                    // Refresh Token cũng hết hạn
+                    logoutForced();
+                    return;
+                }
+            } catch (e) {
+                logoutForced();
+                return;
+            }
+        }
+
+        // Nếu mọi thứ ổn, vào app
+        showLogin(false);
+        if(typeof fetchLSXList === "function") fetchLSXList();
     });
+
+    function showLogin(isLogin) {
+        document.getElementById('login-screen').style.display = isLogin ? 'flex' : 'none';
+        document.getElementById('main-app').style.display = isLogin ? 'none' : 'flex';
+    }
+
+    function logoutForced() {
+        alert("Phiên làm việc đã kết thúc sau 7 ngày. Vui lòng đăng nhập lại.");
+        localStorage.removeItem('user_logged');
+        location.reload();
+    }
 
     // 2. Hàm đăng xuất
     function logout() {
@@ -191,7 +235,8 @@
                 // Chúng ta gộp token vào object user để các hàm cũ không bị lỗi
                 const userData = {
                     ...result.user,
-                    token: result.token
+                    token: result.token,
+                    refresh_token: result.refresh_token // PHẢI LƯU THÊM DÒNG NÀY
                 };
                 localStorage.setItem('user_logged', JSON.stringify(userData));
                 location.reload(); 

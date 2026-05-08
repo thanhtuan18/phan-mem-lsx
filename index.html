@@ -295,7 +295,7 @@
             <td><input type="text" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
             <td><input type="number" class="tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
             <td><input type="number" class="ac-num" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
-            <td class="rate-display">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+            <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
             <td>
                 <select>
                     <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
@@ -385,7 +385,7 @@
                     stage_code: inputs[2].value,
                     target: inputs[3].value,
                     actual: inputs[4].value,
-                    status_cd: inputs[6].value // Đã sửa từ index 6 thành 5
+                    status_cd: inputs[5].value // Đã sửa từ index 6 thành 5
                 });
             }
         });
@@ -461,7 +461,7 @@
         const row = el.closest('tr');
         const tg = parseFloat(row.querySelector('.tg-num').value) || 0;
         const ac = parseFloat(row.querySelector('.ac-num').value) || 0;
-        const cell = row.querySelector('.rate-cell');
+        const cell = row.querySelector('.rate-cell'); // Phải khớp với class ở Bước 1
         
         if (tg > 0) {
             cell.innerText = Math.round(ac / tg * 100) + '%';

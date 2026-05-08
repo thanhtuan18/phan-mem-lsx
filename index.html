@@ -286,52 +286,38 @@
         });
     }
 
-    function addNewRow() {
-        console.group("--- DEBUG TẠO DÒNG MỚI ---");
-        let now = new Date();
-        console.log("Thời gian hệ thống JS:", now.toString());
-        
-        // Cách tạo chuỗi YYYY-MM-DD an toàn nhất
-        let year = now.getFullYear();
-        let month = String(now.getMonth() + 1).padStart(2, '0');
-        let day = String(now.getDate()).padStart(2, '0');
-        let safeDate = `${year}-${month}-${day}`;
-        
-        console.log("Chuỗi ngày đề xuất gán vào Input:", safeDate);
-        
-        // Tìm ô input vừa được tạo ra
-        // Giả sử bạn vừa chèn HTML vào bảng, hãy log nó ra
-        setTimeout(() => {
-            const lastInput = document.querySelector('tr:last-child .ngay-thong-ke-input');
-            if (lastInput) {
-                console.log("Đã tìm thấy Input mới. Giá trị hiện tại:", lastInput.value);
-                lastInput.value = safeDate;
-                console.log("Đã thử gán lại safeDate. Giá trị mới:", lastInput.value);
-            } else {
-                console.error("Không tìm thấy Input sau khi chèn HTML!");
-            }
-        }, 50); // Chờ 50ms để DOM kịp render
-        
-        console.groupEnd();
+    function addNewRow(data = {}) {
+        const tbody = document.getElementById('detail-body');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="date" class="col-date" value="${data.record_date ? new Date(data.record_date).toISOString().split('T')[0] : ''}"></td>
+            <td><input type="text" class="col-name" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
+            <td><input type="text" class="col-code" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
+            <td><input type="number" class="col-tg tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
+            <td><input type="number" class="col-ac ac-num" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
+            <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+            <td>
+                <select class="col-status">
+                    <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
+                    <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
+                </select>
+            </td>
+            <td><button type="button" onclick="this.closest('tr').remove()" style="color:red; border:none; background:none; cursor:pointer">✕</button></td>
+        `;
+        tbody.appendChild(row);
     }
 
     // --- BỔ SUNG: Tải chi tiết 1 LSX ---
     async function loadDetail(id) {
         const userData = JSON.parse(localStorage.getItem('user_logged'));
-        console.group(`--- DEBUG LOAD DETAIL LSX ID: ${id} ---`); // Gom nhóm log cho dễ nhìn
-
         try {
             const res = await fetch(`${API_BASE}/lsx/detail/${id}`, {
                 headers: { 'Authorization': `Bearer ${userData.token}` }
             });
             const result = await res.json();
-            
-            console.log("1. Dữ liệu thô từ API (result.details):", result.details);
-
             const master = result.master;
             const details = result.details;
 
-            // --- Debug Master ---
             document.getElementById('display-lsx-title').innerText = master.lsx_code;
             document.getElementById('mode-text').innerText = "Chỉnh sửa";
             document.getElementById('master-lsx-code').value = master.lsx_code;
@@ -339,49 +325,13 @@
             document.getElementById('master-product').value = master.product_name;
             document.getElementById('master-status').value = master.status;
             document.getElementById('master-note').value = master.note;
+            
+            document.getElementById('master-date').value = master.created_at ? new Date(master.created_at).toISOString().split('T')[0] : '---';
 
-            let masterDateRaw = master.created_at;
-            let masterDateClean = masterDateRaw ? masterDateRaw.split(' ')[0] : '---';
-            console.log(`2. Master Date: Gốc [${masterDateRaw}] | Sau xử lý [${masterDateClean}]`);
-            document.getElementById('master-date').value = masterDateClean;
-
-            // --- Debug Detail Body ---
             const tbody = document.getElementById('detail-body');
             tbody.innerHTML = '';
-            console.log(`3. Bắt đầu vẽ ${details.length} dòng Detail...`);
-
-            details.forEach((d, index) => {
-                console.group(`Dòng [${index}]`);
-                console.log("Dữ liệu record_date gốc:", d.record_date);
-                
-                // Gọi hàm addNewRow và truyền dữ liệu vào
-                addNewRow(d); 
-
-                // Kiểm tra ngay lập tức xem Input trong DOM có nhận đúng giá trị không
-                // Chúng ta dùng setTimeout để đợi trình duyệt vẽ xong HTML (render)
-                setTimeout(() => {
-                    const rows = tbody.querySelectorAll('tr');
-                    const lastRow = rows[rows.length - 1];
-                    const dateInput = lastRow.querySelector('input[type="date"]');
-                    
-                    if (dateInput) {
-                        console.log(`-> Giá trị trong Input sau khi render: "${dateInput.value}"`);
-                        if (dateInput.value === "") {
-                            console.error("!!! CẢNH BÁO: Input bị trống. Có thể giá trị truyền vào không đúng định dạng YYYY-MM-DD.");
-                        }
-                    } else {
-                        console.error("!!! LỖI: Không tìm thấy ô input ngày tháng trong dòng vừa tạo.");
-                    }
-                }, 50);
-                console.groupEnd();
-            });
-
-        } catch (e) { 
-            console.error("LỖI THỰC THI loadDetail:", e);
-            alert("Lỗi tải chi tiết! Xem console để biết thêm."); 
-        } finally {
-            console.groupEnd();
-        }
+            details.forEach(d => addNewRow(d));
+        } catch (e) { alert("Lỗi tải chi tiết!"); }
     }
 
     // --- BỔ SUNG: Chế độ thêm mới ---
@@ -403,7 +353,8 @@
         // FIX TẠI ĐÂY: Dùng định dạng YYYY-MM-DD cho input date
         // const today = new Date().toISOString().split('T')[0];
 
-        document.getElementById('master-date').value = new Date().toLocaleDateString('vi-VN');
+        document.getElementById('master-date').value = new Date().toISOString().split('T')[0];
+
     }
 
     function cancelAction() {
@@ -411,39 +362,69 @@
     }
 
     // 4. Lưu dữ liệu (Đã sửa để lấy cả dữ liệu bảng Detail)
-    function saveData() {
-        console.group("--- DEBUG QUÁ TRÌNH LƯU ---");
-        const rows = document.querySelectorAll('#table-detail-body tr'); // Thay bằng ID chuẩn của bạn
-        console.log("Số lượng dòng tìm thấy trong bảng:", rows.length);
+    async function saveData() {
+        const userData = JSON.parse(localStorage.getItem('user_logged'));
+        const btn = document.querySelector('.btn-primary');
+        
+        // Thu thập thông tin Master
+        const masterData = {
+            lsx_code: document.getElementById('master-lsx-code').value,
+            customer: document.getElementById('master-customer').value,
+            product: document.getElementById('master-product').value,
+            status: document.getElementById('master-status').value,
+            note: document.getElementById('master-note').value
+        };
 
-        let dataToSave = [];
+        if(!masterData.lsx_code) return alert("Không có mã LSX để lưu!");
 
-        rows.forEach((row, i) => {
-            try {
-                console.log(`Đang quét dòng thứ ${i}...`);
-                
-                // Debug từng trường một để biết cái nào bị 'undefined'
-                const inputDate = row.querySelector('.ngay-thong-ke-input');
-                const inputName = row.querySelector('.người-thong-ke-input'); // Kiểm tra lại class này
-                
-                if (!inputDate) console.warn(`Dòng ${i}: Không tìm thấy class .ngay-thong-ke-input`);
-                
-                const record = {
-                    date: inputDate ? inputDate.value : null,
-                    name: inputName ? inputName.value : null
-                };
+        // THU THẬP DỮ LIỆU DETAIL TỪ BẢNG (Chỗ này cực kỳ quan trọng)
+        const details = [];
+        const rows = document.querySelectorAll('#detail-body tr');
+        rows.forEach(row => {
+            const elDate = row.querySelector('.col-date');
+            const elName = row.querySelector('.col-name');
+            const elCode = row.querySelector('.col-code');
+            const elTg = row.querySelector('.col-tg');
+            const elAc = row.querySelector('.col-ac');
+            const elStatus = row.querySelector('.col-status');
 
-                console.log(`Dòng ${i} thu thập được:`, record);
-                dataToSave.push(record);
-
-            } catch (err) {
-                console.error(`LỖI TẠI DÒNG ${i}:`, err.message);
-                console.log("Cấu trúc HTML của dòng bị lỗi:", row.innerHTML);
+            // Chỉ đẩy vào mảng nếu dòng này có tồn tại ô Date và đã chọn ngày
+            if (elDate && elDate.value) { 
+                details.push({
+                    record_date: elDate.value,
+                    recorder_name: elName ? elName.value : '',
+                    stage_code: elCode ? elCode.value : '',
+                    target_quantity: elTg ? (elTg.value || 0) : 0,
+                    actual_quantity: elAc ? (elAc.value || 0) : 0,
+                    stage_status: elStatus ? elStatus.value : 'Đang làm'
+                });
             }
         });
-        
-        console.log("Gói tin cuối cùng chuẩn bị gửi đi:", dataToSave);
-        console.groupEnd();
+
+        const fullData = { ...masterData, details: details };
+
+        btn.innerText = "ĐANG LƯU...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${API_BASE}/lsx/save`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${userData.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(fullData)
+            });
+
+            if (res.status === 401) return logoutForced();
+
+            const result = await res.json();
+            if(result.status === "success") {
+                alert("Lưu thành công!");
+                fetchLSXList();
+            } else { alert("Lỗi: " + result.message); }
+        } catch (e) { alert("Lỗi kết nối máy chủ!"); }
+        finally { btn.innerText = "LƯU DỮ LIỆU"; btn.disabled = false; }
     }
     
     // BỔ SUNG: Code xử lý bộ lọc tìm kiếm nhanh

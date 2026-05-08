@@ -378,14 +378,16 @@
         const rows = document.querySelectorAll('#detail-body tr');
         rows.forEach(row => {
             const inputs = row.querySelectorAll('input, select');
+            // SỬA: Kiểm tra có ít nhất 6 ô (5 input + 1 select)
             if (inputs.length >= 6) {
                 details.push({
-                    record_date: inputs[0].value, // Đổi thành record_date
-                    recorder_name: inputs[1].value, // Nên đổi luôn thành recorder_name cho khớp DB
+                    record_date: inputs[0].value,
+                    recorder_name: inputs[1].value,
                     stage_code: inputs[2].value,
-                    target_quantity: inputs[3].value, // Khớp với thuộc tính DB
-                    actual_quantity: inputs[4].value,  // Khớp với thuộc tính DB
-                    stage_status: inputs[6].value      // Khớp với thuộc tính DB
+                    target_quantity: inputs[3].value,
+                    actual_quantity: inputs[4].value,
+                    // SỬA: Index của select là 5, không phải 6
+                    stage_status: inputs[5].value 
                 });
             }
         });

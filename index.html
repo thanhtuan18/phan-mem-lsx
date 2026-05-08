@@ -290,14 +290,14 @@
         const tbody = document.getElementById('detail-body');
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><input type="date" value="${data.record_date ? data.record_date.split(' ')[0] : ''}"></td>
-            <td><input type="text" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
-            <td><input type="text" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
-            <td><input type="number" class="tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
-            <td><input type="number" class="ac-num" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
+            <td><input type="date" class="d-date" value="${data.record_date ? data.record_date.split(' ')[0] : ''}"></td>
+            <td><input type="text" class="d-name" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
+            <td><input type="text" class="d-stage" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
+            <td><input type="number" class="d-target tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
+            <td><input type="number" class="d-actual ac-num" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
             <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
             <td>
-                <select>
+                <select class="d-status">
                     <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
                     <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
                 </select>
@@ -380,26 +380,28 @@
         // --- DEBUG 2: THU THẬP VÀ KIỂM TRA DÒNG CHI TIẾT ---
         const details = [];
         const rows = document.querySelectorAll('#detail-body tr');
-        console.log(`2. Bắt đầu quét ${rows.length} dòng trong bảng Detail...`);
 
         rows.forEach((row, index) => {
-            const inputs = row.querySelectorAll('input, select');
-            console.log(`- Dòng [${index}]: Tìm thấy ${inputs.length} ô nhập liệu.`);
-            
-            // CHÚ Ý: inputs có 6 phần tử (từ 0 đến 5). inputs[6] sẽ là UNDEFINED.
-            if (inputs.length >= 6) {
-                const detailRow = {
-                    record_date: inputs[0].value, 
-                    recorder_name: inputs[1].value, 
-                    stage_code: inputs[2].value,
-                    target_quantity: inputs[3].value, 
-                    actual_quantity: inputs[4].value,  
-                    stage_status: inputs[5].value // ĐÃ SỬA: Phải là index 5 (ô cuối cùng)
-                };
-                details.push(detailRow);
-                console.log(`- Dòng [${index}] hợp lệ:`, detailRow);
+            // Lấy chính xác từng ô theo class chúng ta vừa đặt
+            const dateInp = row.querySelector('.d-date');
+            const nameInp = row.querySelector('.d-name');
+            const stageInp = row.querySelector('.d-stage');
+            const targetInp = row.querySelector('.d-target');
+            const actualInp = row.querySelector('.d-actual');
+            const statusInp = row.querySelector('.d-status');
+
+            // Kiểm tra xem các ô này có tồn tại không trước khi lấy .value
+            if (dateInp && nameInp && stageInp) {
+                details.push({
+                    record_date: dateInp.value,
+                    recorder_name: nameInp.value,
+                    stage_code: stageInp.value,
+                    target_quantity: targetInp.value,
+                    actual_quantity: actualInp.value,
+                    stage_status: statusInp.value
+                });
             } else {
-                console.warn(`- Dòng [${index}] bị bỏ qua do thiếu ô nhập liệu (Số ô: ${inputs.length})`);
+                console.warn(`Dòng ${index} thiếu phần tử điều khiển, bỏ qua.`);
             }
         });
 

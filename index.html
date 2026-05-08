@@ -350,6 +350,9 @@
         
         // Gán mã và ngày mới
         document.getElementById('master-lsx-code').value = "LSX-" + Date.now().toString().slice(-6);
+        // FIX TẠI ĐÂY: Dùng định dạng YYYY-MM-DD cho input date
+        const today = new Date().toISOString().split('T')[0];
+
         document.getElementById('master-date').value = new Date().toLocaleDateString('vi-VN');
     }
 

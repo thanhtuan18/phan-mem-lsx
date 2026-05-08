@@ -289,8 +289,15 @@
     function addNewRow(data = {}) {
         const tbody = document.getElementById('detail-body');
         const row = document.createElement('tr');
+
+        // Hàm nội bộ để xử lý ngày an toàn
+        const formatSafeDate = (dateStr) => {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+        };
         row.innerHTML = `
-            <td><input type="date" class="col-date" value="${data.record_date ? new Date(data.record_date).toISOString().split('T')[0] : ''}"></td>
+            <td><input type="date" class="col-date" value="${data.record_date ? data.record_date.split(' ')[0] : ''}"></td>
             <td><input type="text" class="col-name" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
             <td><input type="text" class="col-code" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
             <td><input type="number" class="col-tg tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
@@ -325,8 +332,11 @@
             document.getElementById('master-product').value = master.product_name;
             document.getElementById('master-status').value = master.status;
             document.getElementById('master-note').value = master.note;
-            
-            document.getElementById('master-date').value = master.created_at ? new Date(master.created_at).toISOString().split('T')[0] : '---';
+            // document.getElementById('master-date').value = master.created_at || '---';
+            const masterDate = master.created_at ? new Date(master.created_at) : null;
+            document.getElementById('master-date').value = (masterDate && !isNaN(masterDate.getTime())) 
+                ? masterDate.toISOString().split('T')[0] 
+                : '---';
 
             const tbody = document.getElementById('detail-body');
             tbody.innerHTML = '';
@@ -353,8 +363,7 @@
         // FIX TẠI ĐÂY: Dùng định dạng YYYY-MM-DD cho input date
         // const today = new Date().toISOString().split('T')[0];
 
-        document.getElementById('master-date').value = new Date().toISOString().split('T')[0];
-
+        document.getElementById('master-date').value = new Date().toLocaleDateString('vi-VN');
     }
 
     function cancelAction() {

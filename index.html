@@ -139,127 +139,364 @@
 <script>
     const API_BASE = 'https://api-sx.technoup.info/api';
 
-    // 1. Kiểm tra Auth (Giữ nguyên)
+    // 1. Kiểm tra trạng thái đăng nhập khi load trang
     document.addEventListener('DOMContentLoaded', async () => {
         const userLoggedStr = localStorage.getItem('user_logged');
-        if (!userLoggedStr) { showLogin(true); return; }
+        if (!userLoggedStr) {
+            showLogin(true);
+            return;
+        }
+
         try {
             let userData = JSON.parse(userLoggedStr);
-            showLogin(false);
+            const payload = JSON.parse(atob(userData.token.split('.')[1]));
+            const now = Math.floor(Date.now() / 1000);
+
+            if (payload.exp < (now + 300)) { // Làm mới nếu còn dưới 5 phút
+                const res = await fetch(`${API_BASE}/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: userData.refresh_token })
+                });
+
+                const result = await res.json();
+                if (result.status === "success") {
+                    userData.token = result.token;
+                    localStorage.setItem('user_logged', JSON.stringify(userData));
+                } else {
+                    logoutForced();
+                    return;
+                }
+            }
+
+        // Nếu mọi thứ ổn, vào app
+        showLogin(false);
             fetchLSXList();
-        } catch (e) { logoutForced(); }
+        } catch (e) {
+            console.error("Auth check error:", e);
+            logoutForced();
+        }
     });
-
-    // 2. LOG DỮ LIỆU TỪ API CHI TIẾT
-    async function loadDetail(id) {
-        const userData = JSON.parse(localStorage.getItem('user_logged'));
-        console.log(`--- [DEBUG] Đang tải chi tiết cho LSX ID: ${id} ---`);
-        
-        try {
-            const res = await fetch(`${API_BASE}/lsx/detail/${id}`, {
-                headers: { 'Authorization': `Bearer ${userData.token}` }
-            });
-            const result = await res.json();
-            
-            console.log("1. Dữ liệu thô từ API (result.details):", result.details);
-
-            const master = result.master;
-            const details = result.details;
-
-            document.getElementById('display-lsx-title').innerText = master.lsx_code;
-            document.getElementById('master-lsx-code').value = master.lsx_code;
-            document.getElementById('master-customer').value = master.customer_name;
-            document.getElementById('master-product').value = master.product_name;
-            document.getElementById('master-status').value = master.status;
-            document.getElementById('master-note').value = master.note;
-            document.getElementById('master-date').value = master.created_at ? master.created_at.split(' ')[0] : '---';
-
-            const tbody = document.getElementById('detail-body');
-            tbody.innerHTML = '';
-
-            // Kiểm tra từng dòng detail trước khi render
-            details.forEach((d, index) => {
-                console.log(`2. Dòng [${index}] - record_date gốc:`, `'${d.record_date}'`);
-                addNewRow(d);
-            });
-
-        } catch (e) { 
-            console.error("Critical Error trong loadDetail:", e);
-            alert("Lỗi tải chi tiết!"); 
-        }
-    }
-
-    // 3. LOG QUÁ TRÌNH ĐỔ VÀO INPUT DATE
-    function addNewRow(data = {}) {
-        const tbody = document.getElementById('detail-body');
-        const row = document.createElement('tr');
-        
-        // Debug logic xử lý ngày
-        let rawDate = data.record_date || '';
-        let processedDate = '';
-        
-        if (rawDate) {
-            // Thẻ <input type="date"> CHỈ CHẤP NHẬN định dạng: YYYY-MM-DD
-            processedDate = rawDate.split(' ')[0]; // Tách bỏ phần giờ nếu có
-            console.log(`   -> Debug Row: Gốc [${rawDate}] | Sau xử lý [${processedDate}]`);
-        }
-
-        row.innerHTML = `
-            <td><input type="date" class="col-date" value="${processedDate}"></td>
-            <td><input type="text" class="col-name" value="${data.recorder_name || ''}"></td>
-            <td><input type="text" class="col-code" value="${data.stage_code || ''}"></td>
-            <td><input type="number" class="col-tg tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
-            <td><input type="number" class="col-ac ac-num" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
-            <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
-            <td>
-                <select class="col-status">
-                    <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
-                    <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
-                </select>
-            </td>
-            <td><button type="button" onclick="this.closest('tr').remove()" style="color:red; border:none; background:none;">✕</button></td>
-        `;
-        tbody.appendChild(row);
-
-        // Kiểm tra xem trình duyệt có chấp nhận giá trị đó không
-        const lastInput = row.querySelector('.col-date');
-        if (processedDate && lastInput.value === "") {
-            console.warn(`   !!! LỖI: Trình duyệt từ chối giá trị "${processedDate}". Có thể sai định dạng YYYY-MM-DD.`);
-        }
-    }
-
-    // --- CÁC HÀM BỔ TRỢ (GIỮ NGUYÊN) ---
-    async function fetchLSXList() {
-        const userData = JSON.parse(localStorage.getItem('user_logged'));
-        const res = await fetch(`${API_BASE}/lsx/list`, { headers: { 'Authorization': `Bearer ${userData.token}` } });
-        const result = await res.json();
-        if (result.status === "success") renderLSXList(result.data);
-    }
-
-    function renderLSXList(data) {
-        const container = document.getElementById('lsx-list-items');
-        container.innerHTML = '';
-        data.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'lsx-item';
-            div.style = "padding:10px; border-bottom:1px solid #eee; cursor:pointer";
-            div.onclick = () => loadDetail(item.id);
-            div.innerHTML = `<b>${item.lsx_code}</b><br><small>${item.customer_name || 'Khách lẻ'}</small>`;
-            container.appendChild(div);
-        });
-    }
-
-    function calcRate(el) {
-        const row = el.closest('tr');
-        const tg = parseFloat(row.querySelector('.tg-num').value) || 0;
-        const ac = parseFloat(row.querySelector('.ac-num').value) || 0;
-        row.querySelector('.rate-cell').innerText = tg > 0 ? Math.round(ac / tg * 100) + '%' : '0%';
-    }
 
     function showLogin(isLogin) {
         document.getElementById('login-screen').style.display = isLogin ? 'flex' : 'none';
         document.getElementById('main-app').style.display = isLogin ? 'none' : 'flex';
     }
+
+    function logoutForced() {
+        alert("Phiên làm việc đã kết thúc sau 7 ngày. Vui lòng đăng nhập lại.");
+        localStorage.removeItem('user_logged');
+        location.reload();
+    }
+
+    // 2. Hàm đăng xuất
+    function logout() {
+        if(confirm("Bạn muốn đăng xuất?")) {
+            localStorage.removeItem('user_logged');
+            location.reload();
+        }
+    }
+
+    // 3. Xử lý Đăng nhập tương thích với Flask API
+    async function handleLogin() {
+        const u = document.getElementById('user').value.trim();
+        const p = document.getElementById('pass').value.trim();
+        const btn = document.getElementById('login-btn');
+        const err = document.getElementById('error-box');
+
+        if (!u || !p) { alert("Vui lòng nhập đủ tài khoản và mật khẩu!"); return; }
+        
+        btn.innerText = "Đang xác thực...";
+        btn.disabled = true;
+        if(err) err.style.display = 'none';
+
+        try {
+            // ĐƯỜNG DẪN MỚI: Trỏ về subdomain chứa Flask App của bạn
+            const response = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: u, 
+                    password: p
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.status === "success") {
+                // LƯU Ý: Lưu cả thông tin user và TOKEN vào localStorage
+                // Chúng ta gộp token vào object user để các hàm cũ không bị lỗi
+                const userData = {
+                    ...result.user,
+                    token: result.token,
+                    refresh_token: result.refresh_token // PHẢI LƯU THÊM DÒNG NÀY
+                };
+                localStorage.setItem('user_logged', JSON.stringify(userData));
+                location.reload(); 
+            } else {
+                if(err) { 
+                    err.innerText = result.message || "Tài khoản hoặc mật khẩu không chính xác!"; 
+                    err.style.display = 'block'; 
+                }
+            }
+        } catch (e) {
+            console.error("Login Error:", e);
+            alert("Lỗi kết nối máy chủ Flask!");
+        } finally {
+            btn.innerText = "ĐĂNG NHẬP";
+            btn.disabled = false;
+        }
+    }
+
+    // 3. Lấy danh sách LSX (Có bắt lỗi 401)
+    async function fetchLSXList() {
+        const userData = JSON.parse(localStorage.getItem('user_logged'));
+        try {
+            const res = await fetch(`${API_BASE}/lsx/list`, {
+                headers: { 'Authorization': `Bearer ${userData.token}` }
+            });
+            
+            if (res.status === 401) return logoutForced();
+
+            const result = await res.json();
+            if (result.status === "success" && typeof renderLSXList === "function") {
+                renderLSXList(result.data);
+            }
+        } catch (e) { console.error("Lỗi tải danh sách:", e); }
+    }
+
+    // --- BỔ SUNG: Hiển thị danh sách lên Sidebar ---
+    function renderLSXList(data) {
+        const container = document.getElementById('lsx-list-items');
+        container.innerHTML = '';
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'lsx-item'; // Hãy đảm bảo có class này trong style.css
+            div.setAttribute('data-customer', (item.customer_name || '').toLowerCase());
+            div.setAttribute('data-status', (item.status || '').toLowerCase());
+            div.setAttribute('data-date', item.created_at || ''); // Giả định định dạng YYYY-MM-DD
+
+            div.style = "padding:10px; border-bottom:1px solid #eee; cursor:pointer";
+            div.onclick = () => loadDetail(item.id);
+            div.innerHTML = `
+                <div style="font-weight:600">${item.lsx_code}</div>
+                <div style="font-size:12px; color:#666">${item.customer_name || 'Khách lẻ'}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function addNewRow(data = {}) {
+        const tbody = document.getElementById('detail-body');
+        const row = document.createElement('tr');
+        
+        // DEBUG ĐỊNH DẠNG NGÀY
+        let rawDate = data.record_date || "";
+        let formattedDate = "";
+
+        if (rawDate && rawDate !== "0000-00-00") {
+            // Nếu API trả về dạng "Sat, 09 May 2026..." hoặc "2026-05-09 00:00:00"
+            // Ta cần ép nó về chuẩn YYYY-MM-DD
+            try {
+                const d = new Date(rawDate);
+                if (!isNaN(d.getTime())) {
+                    formattedDate = d.toISOString().split('T')[0];
+                }
+            } catch (e) {
+                console.error("Lỗi parse ngày:", rawDate);
+            }
+        }
+        
+        console.log(`[DEBUG ROW] Gốc: ${rawDate} -> Chuyển thành: ${formattedDate}`);
+
+        row.innerHTML = `
+            <td><input type="date" class="col-date" value="${formattedDate}"></td>
+            <td><input type="text" class="col-recorder" value="${data.recorder_name || ''}"></td>
+            <td><input type="text" class="col-stage" value="${data.stage_code || ''}"></td>
+            <td><input type="number" class="col-target" value="${data.target_quantity || 0}"></td>
+            <td><input type="number" class="col-actual" value="${data.actual_quantity || 0}"></td>
+            <td class="rate-cell">0%</td>
+            <td>
+                <select class="col-status">
+                    <option value="Đang làm" ${data.stage_status === 'Đang làm' ? 'selected' : ''}>Đang làm</option>
+                    <option value="Hoàn thành" ${data.stage_status === 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
+                </select>
+            </td>
+            <td><button type="button" onclick="this.closest('tr').remove()" style="color:red">✕</button></td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    // --- BỔ SUNG: Tải chi tiết 1 LSX ---
+    async function loadDetail(id) {
+        const userData = JSON.parse(localStorage.getItem('user_logged'));
+        try {
+            const res = await fetch(`${API_BASE}/lsx/detail/${id}`, {
+                headers: { 'Authorization': `Bearer ${userData.token}` }
+            });
+            const result = await res.json();
+            const master = result.master;
+            const details = result.details;
+
+            document.getElementById('display-lsx-title').innerText = master.lsx_code;
+            document.getElementById('mode-text').innerText = "Chỉnh sửa";
+            document.getElementById('master-lsx-code').value = master.lsx_code;
+            document.getElementById('master-customer').value = master.customer_name;
+            document.getElementById('master-product').value = master.product_name;
+            document.getElementById('master-status').value = master.status;
+            document.getElementById('master-note').value = master.note;
+            // document.getElementById('master-date').value = master.created_at || '---';
+            document.getElementById('master-date').value = master.created_at ? master.created_at.split(' ')[0] : '---';
+
+            const tbody = document.getElementById('detail-body');
+            tbody.innerHTML = '';
+            details.forEach(d => addNewRow(d));
+        } catch (e) { alert("Lỗi tải chi tiết!"); }
+    }
+
+    // --- BỔ SUNG: Chế độ thêm mới ---
+    function prepareAddNew() {
+        document.getElementById('display-lsx-title').innerText = "TẠO MỚI";
+        document.getElementById('mode-text').innerText = "Thêm mới";
+        
+        // Chỉ xóa các ô nhập liệu Master
+        document.getElementById('master-customer').value = '';
+        document.getElementById('master-product').value = '';
+        document.getElementById('master-note').value = '';
+        document.getElementById('master-status').value = 'Chưa thực hiện';
+        
+        // Làm trống bảng chi tiết
+        document.getElementById('detail-body').innerHTML = '';
+        
+        // Gán mã và ngày mới
+        document.getElementById('master-lsx-code').value = "LSX-" + Date.now().toString().slice(-6);
+        // FIX TẠI ĐÂY: Dùng định dạng YYYY-MM-DD cho input date
+        // const today = new Date().toISOString().split('T')[0];
+
+        document.getElementById('master-date').value = new Date().toLocaleDateString('vi-VN');
+    }
+
+    function cancelAction() {
+        if(confirm("Hủy bỏ thay đổi?")) fetchLSXList();
+    }
+
+    // 4. Lưu dữ liệu (Đã sửa để lấy cả dữ liệu bảng Detail)
+    async function saveData() {
+        console.log("--- BẮT ĐẦU QUÉT DỮ LIỆU ĐỂ LƯU ---");
+        
+        const master = {
+            lsx_code: document.getElementById('master-lsx-code').value,
+            status: document.getElementById('master-status').value,
+            note: document.getElementById('master-note').value
+        };
+
+        const details = [];
+        const rows = document.querySelectorAll('#detail-body tr');
+
+        rows.forEach((row, index) => {
+            try {
+                // Sử dụng querySelector chính xác theo class đã đặt ở addNewRow
+                const dateVal = row.querySelector('.col-date').value;
+                const recorderVal = row.querySelector('.col-recorder').value;
+                const stageVal = row.querySelector('.col-stage').value;
+                const targetVal = row.querySelector('.col-target').value;
+                const actualVal = row.querySelector('.col-actual').value;
+                const statusVal = row.querySelector('.col-status').value;
+
+                console.log(`Dòng [${index}] quét được:`, {dateVal, stageVal});
+
+                if (!dateVal) {
+                    console.warn(`Dòng [${index}] bị thiếu ngày!`);
+                }
+
+                details.push({
+                    record_date: dateVal,
+                    recorder_name: recorderVal,
+                    stage_code: stageVal,
+                    target_quantity: targetVal,
+                    actual_quantity: actualVal,
+                    stage_status: statusVal
+                });
+            } catch (err) {
+                console.error(`Lỗi tại dòng [${index}]:`, err.message);
+            }
+        });
+
+        const payload = { ...master, details };
+        console.log("GÓI TIN CUỐI CÙNG GỬI LÊN:", JSON.stringify(payload, null, 2));
+
+        // Gửi API (giữ nguyên logic fetch của bạn)
+        const res = await fetch(`${API_BASE}/lsx/save`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${JSON.parse(localStorage.getItem('user_logged')).token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await res.json();
+        if(result.status === 'success') {
+            alert("Lưu thành công!");
+        } else {
+            alert("Lỗi: " + result.message);
+        }
+    }
+    
+    // BỔ SUNG: Code xử lý bộ lọc tìm kiếm nhanh
+    // document.getElementById('filter-lsx').addEventListener('input', function(e) {
+    //     const val = e.target.value.toLowerCase();
+    //     const items = document.querySelectorAll('.lsx-item');
+    //     items.forEach(item => {
+    //         item.style.display = item.innerText.toLowerCase().includes(val) ? 'block' : 'none';
+    //     });
+    // });
+
+    // --- THAY THẾ TOÀN BỘ ĐOẠN XỬ LÝ BỘ LỌC CUỐI FILE ---
+    function applyFilters() {
+        const searchVal = document.getElementById('filter-lsx').value.toLowerCase();
+        const customerVal = document.getElementById('filter-customer').value.toLowerCase();
+        const stageVal = document.getElementById('filter-stage').value.toLowerCase();
+        const dateFrom = document.getElementById('filter-date-from').value;
+        const dateTo = document.getElementById('filter-date-to').value;
+
+        const items = document.querySelectorAll('.lsx-item');
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            const customer = item.getAttribute('data-customer');
+            const status = item.getAttribute('data-status');
+            const date = item.getAttribute('data-date').split(' ')[0]; // Lấy phần YYYY-MM-DD
+
+            let visible = text.includes(searchVal) && customer.includes(customerVal);
+            
+            if (stageVal && !status.includes(stageVal)) visible = false;
+            if (dateFrom && date < dateFrom) visible = false;
+            if (dateTo && date > dateTo) visible = false;
+
+            item.style.display = visible ? 'block' : 'none';
+        });
+    }
+
+    // Gắn sự kiện cho tất cả các ô lọc
+    ['filter-lsx', 'filter-customer', 'filter-stage', 'filter-date-from', 'filter-date-to'].forEach(id => {
+        document.getElementById(id).addEventListener('input', applyFilters);
+        document.getElementById(id).addEventListener('change', applyFilters);
+    });
+
+    // Hàm này giúp khi bạn gõ số đến đâu, % nhảy đến đấy
+    function calcRate(el) {
+        const row = el.closest('tr');
+        const tg = parseFloat(row.querySelector('.tg-num').value) || 0;
+        const ac = parseFloat(row.querySelector('.ac-num').value) || 0;
+        const cell = row.querySelector('.rate-cell'); // Phải khớp với class ở Bước 1
+        
+        if (tg > 0) {
+            cell.innerText = Math.round(ac / tg * 100) + '%';
+        } else {
+            cell.innerText = '0%';
+        }
+    }
+
 </script>
 </body>
 </html>

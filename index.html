@@ -272,6 +272,10 @@
         data.forEach(item => {
             const div = document.createElement('div');
             div.className = 'lsx-item'; // Hãy đảm bảo có class này trong style.css
+            div.setAttribute('data-customer', (item.customer_name || '').toLowerCase());
+            div.setAttribute('data-status', (item.status || '').toLowerCase());
+            div.setAttribute('data-date', item.created_at || ''); // Giả định định dạng YYYY-MM-DD
+
             div.style = "padding:10px; border-bottom:1px solid #eee; cursor:pointer";
             div.onclick = () => loadDetail(item.id);
             div.innerHTML = `
@@ -413,12 +417,43 @@
     }
     
     // BỔ SUNG: Code xử lý bộ lọc tìm kiếm nhanh
-    document.getElementById('filter-lsx').addEventListener('input', function(e) {
-        const val = e.target.value.toLowerCase();
+    // document.getElementById('filter-lsx').addEventListener('input', function(e) {
+    //     const val = e.target.value.toLowerCase();
+    //     const items = document.querySelectorAll('.lsx-item');
+    //     items.forEach(item => {
+    //         item.style.display = item.innerText.toLowerCase().includes(val) ? 'block' : 'none';
+    //     });
+    // });
+
+    // --- THAY THẾ TOÀN BỘ ĐOẠN XỬ LÝ BỘ LỌC CUỐI FILE ---
+    function applyFilters() {
+        const searchVal = document.getElementById('filter-lsx').value.toLowerCase();
+        const customerVal = document.getElementById('filter-customer').value.toLowerCase();
+        const stageVal = document.getElementById('filter-stage').value.toLowerCase();
+        const dateFrom = document.getElementById('filter-date-from').value;
+        const dateTo = document.getElementById('filter-date-to').value;
+
         const items = document.querySelectorAll('.lsx-item');
         items.forEach(item => {
-            item.style.display = item.innerText.toLowerCase().includes(val) ? 'block' : 'none';
+            const text = item.innerText.toLowerCase();
+            const customer = item.getAttribute('data-customer');
+            const status = item.getAttribute('data-status');
+            const date = item.getAttribute('data-date').split(' ')[0]; // Lấy phần YYYY-MM-DD
+
+            let visible = text.includes(searchVal) && customer.includes(customerVal);
+            
+            if (stageVal && !status.includes(stageVal)) visible = false;
+            if (dateFrom && date < dateFrom) visible = false;
+            if (dateTo && date > dateTo) visible = false;
+
+            item.style.display = visible ? 'block' : 'none';
         });
+    }
+
+    // Gắn sự kiện cho tất cả các ô lọc
+    ['filter-lsx', 'filter-customer', 'filter-stage', 'filter-date-from', 'filter-date-to'].forEach(id => {
+        document.getElementById(id).addEventListener('input', applyFilters);
+        document.getElementById(id).addEventListener('change', applyFilters);
     });
 
 </script>

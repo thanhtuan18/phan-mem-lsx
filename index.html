@@ -294,9 +294,10 @@
             <td><input type="date" value="${data.record_date || ''}"></td>
             <td><input type="text" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
             <td><input type="text" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
-            <td><input type="number" value="${data.target_quantity || 0}"></td>
-            <td><input type="number" value="${data.actual_quantity || 0}"></td>
-            <td>${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+            <td><input type="number" class="tg" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
+            <td><input type="number" class="ac" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
+            // <td>${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+            <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
             <td>
                 <select>
                     <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
@@ -326,7 +327,8 @@
             document.getElementById('master-product').value = master.product_name;
             document.getElementById('master-status').value = master.status;
             document.getElementById('master-note').value = master.note;
-            document.getElementById('master-date').value = master.created_at || '---';
+            // document.getElementById('master-date').value = master.created_at || '---';
+            document.getElementById('master-date').value = master.created_at ? master.created_at.split(' ')[0] : '---';
 
             const tbody = document.getElementById('detail-body');
             tbody.innerHTML = '';
@@ -455,6 +457,20 @@
         document.getElementById(id).addEventListener('input', applyFilters);
         document.getElementById(id).addEventListener('change', applyFilters);
     });
+
+    // Hàm này giúp khi bạn gõ số đến đâu, % nhảy đến đấy
+    function calcRate(el) {
+        const row = el.closest('tr');
+        const tg = parseFloat(row.querySelector('.tg').value) || 0;
+        const ac = parseFloat(row.querySelector('.ac').value) || 0;
+        const cell = row.querySelector('.rate-cell');
+        
+        if (tg > 0) {
+            cell.innerText = Math.round(ac / tg * 100) + '%';
+        } else {
+            cell.innerText = '0%';
+        }
+    }
 
 </script>
 </body>

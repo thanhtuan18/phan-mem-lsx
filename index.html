@@ -286,29 +286,6 @@
         });
     }
 
-    // --- BỔ SUNG: Thêm dòng vào bảng công đoạn ---
-    // function addNewRow(data = {}) {
-    //     const tbody = document.getElementById('detail-body');
-    //     const row = document.createElement('tr');
-    //     row.innerHTML = `
-    //         <td><input type="date" value="${data.record_date || ''}"></td>
-    //         <td><input type="text" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
-    //         <td><input type="text" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
-    //         <td><input type="number" class="tg" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
-    //         <td><input type="number" class="ac" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
-    //         // <td>${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
-    //         <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
-    //         <td>
-    //             <select>
-    //                 <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
-    //                 <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
-    //             </select>
-    //         </td>
-    //         <td><button onclick="this.parentElement.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer">✕</button></td>
-    //     `;
-    //     tbody.appendChild(row);
-    // }
-
     function addNewRow(data = {}) {
         const tbody = document.getElementById('detail-body');
         const row = document.createElement('tr');
@@ -408,7 +385,7 @@
                     stage_code: inputs[2].value,
                     target: inputs[3].value,
                     actual: inputs[4].value,
-                    status_cd: inputs[5].value // Đã sửa từ index 6 thành 5
+                    status_cd: inputs[6].value // Đã sửa từ index 6 thành 5
                 });
             }
         });
@@ -482,8 +459,8 @@
     // Hàm này giúp khi bạn gõ số đến đâu, % nhảy đến đấy
     function calcRate(el) {
         const row = el.closest('tr');
-        const tg = parseFloat(row.querySelector('.tg').value) || 0;
-        const ac = parseFloat(row.querySelector('.ac').value) || 0;
+        const tg = parseFloat(row.querySelector('.tg-num').value) || 0;
+        const ac = parseFloat(row.querySelector('.ac-num').value) || 0;
         const cell = row.querySelector('.rate-cell');
         
         if (tg > 0) {

@@ -302,7 +302,7 @@
                     <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
                 </select>
             </td>
-            <td><button onclick="this.parentElement.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer">✕</button></td>
+            <td><button type="button" onclick="this.closest('tr').remove()" style="color:red; border:none; background:none; cursor:pointer">✕</button></td>
         `;
         tbody.appendChild(row);
     }
@@ -380,16 +380,22 @@
         const details = [];
         const rows = document.querySelectorAll('#detail-body tr');
         rows.forEach(row => {
-            // Lấy chính xác theo class đã đặt ở hàm addNewRow
-            const dateVal = row.querySelector('.col-date').value;
-            if (dateVal) { // Chỉ lưu những dòng có nhập ngày
+            const elDate = row.querySelector('.col-date');
+            const elName = row.querySelector('.col-name');
+            const elCode = row.querySelector('.col-code');
+            const elTg = row.querySelector('.col-tg');
+            const elAc = row.querySelector('.col-ac');
+            const elStatus = row.querySelector('.col-status');
+
+            // Chỉ đẩy vào mảng nếu dòng này có tồn tại ô Date và đã chọn ngày
+            if (elDate && elDate.value) { 
                 details.push({
-                    record_date: dateVal,
-                    recorder_name: row.querySelector('.col-name').value,
-                    stage_code: row.querySelector('.col-code').value,
-                    target_quantity: row.querySelector('.col-tg').value || 0,
-                    actual_quantity: row.querySelector('.col-ac').value || 0,
-                    stage_status: row.querySelector('.col-status').value
+                    record_date: elDate.value,
+                    recorder_name: elName ? elName.value : '',
+                    stage_code: elCode ? elCode.value : '',
+                    target_quantity: elTg ? (elTg.value || 0) : 0,
+                    actual_quantity: elAc ? (elAc.value || 0) : 0,
+                    stage_status: elStatus ? elStatus.value : 'Đang làm'
                 });
             }
         });

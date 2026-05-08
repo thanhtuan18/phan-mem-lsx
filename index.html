@@ -362,7 +362,7 @@
         const userData = JSON.parse(localStorage.getItem('user_logged'));
         const btn = document.querySelector('.btn-primary');
         
-        // Thu thập thông tin Master
+        // --- DEBUG 1: KIỂM TRA INPUTS MASTER ---
         const masterData = {
             lsx_code: document.getElementById('master-lsx-code').value,
             customer: document.getElementById('master-customer').value,
@@ -370,27 +370,43 @@
             status: document.getElementById('master-status').value,
             note: document.getElementById('master-note').value
         };
+        console.log("1. Master Data thu thập được:", masterData);
 
-        if(!masterData.lsx_code) return alert("Không có mã LSX để lưu!");
+        if(!masterData.lsx_code) {
+            console.error("LỖI: Mã LSX trống!");
+            return alert("Không có mã LSX để lưu!");
+        }
 
-        // THU THẬP DỮ LIỆU DETAIL TỪ BẢNG (Chỗ này cực kỳ quan trọng)
+        // --- DEBUG 2: THU THẬP VÀ KIỂM TRA DÒNG CHI TIẾT ---
         const details = [];
         const rows = document.querySelectorAll('#detail-body tr');
-        rows.forEach(row => {
+        console.log(`2. Bắt đầu quét ${rows.length} dòng trong bảng Detail...`);
+
+        rows.forEach((row, index) => {
             const inputs = row.querySelectorAll('input, select');
+            console.log(`- Dòng [${index}]: Tìm thấy ${inputs.length} ô nhập liệu.`);
+            
+            // CHÚ Ý: inputs có 6 phần tử (từ 0 đến 5). inputs[6] sẽ là UNDEFINED.
             if (inputs.length >= 6) {
-                details.push({
-                    record_date: inputs[0].value, // Đổi thành record_date
-                    recorder_name: inputs[1].value, // Nên đổi luôn thành recorder_name cho khớp DB
+                const detailRow = {
+                    record_date: inputs[0].value, 
+                    recorder_name: inputs[1].value, 
                     stage_code: inputs[2].value,
-                    target_quantity: inputs[3].value, // Khớp với thuộc tính DB
-                    actual_quantity: inputs[4].value,  // Khớp với thuộc tính DB
-                    stage_status: inputs[6].value      // Khớp với thuộc tính DB
-                });
+                    target_quantity: inputs[3].value, 
+                    actual_quantity: inputs[4].value,  
+                    stage_status: inputs[5].value // ĐÃ SỬA: Phải là index 5 (ô cuối cùng)
+                };
+                details.push(detailRow);
+                console.log(`- Dòng [${index}] hợp lệ:`, detailRow);
+            } else {
+                console.warn(`- Dòng [${index}] bị bỏ qua do thiếu ô nhập liệu (Số ô: ${inputs.length})`);
             }
         });
 
         const fullData = { ...masterData, details: details };
+        
+        // --- DEBUG 3: KIỂM TRA TOÀN BỘ GÓI TIN TRƯỚC KHI GỬI ---
+        console.log("3. GÓI TIN CUỐI CÙNG GỬI LÊN SERVER:", JSON.stringify(fullData, null, 2));
 
         btn.innerText = "ĐANG LƯU...";
         btn.disabled = true;
@@ -405,15 +421,30 @@
                 body: JSON.stringify(fullData)
             });
 
-            if (res.status === 401) return logoutForced();
+            console.log("4. Trạng thái phản hồi từ Server (HTTP Status):", res.status);
+
+            if (res.status === 401) {
+                console.error("LỖI 401: Token hết hạn hoặc không hợp lệ.");
+                return logoutForced();
+            }
 
             const result = await res.json();
+            console.log("5. Kết quả trả về từ API:", result);
+
             if(result.status === "success") {
                 alert("Lưu thành công!");
                 fetchLSXList();
-            } else { alert("Lỗi: " + result.message); }
-        } catch (e) { alert("Lỗi kết nối máy chủ!"); }
-        finally { btn.innerText = "LƯU DỮ LIỆU"; btn.disabled = false; }
+            } else { 
+                console.error("API báo lỗi:", result.message);
+                alert("Lỗi từ Server: " + result.message); 
+            }
+        } catch (e) { 
+            console.error("6. LỖI KẾT NỐI (Mạng hoặc Crash code):", e);
+            alert("Lỗi kết nối máy chủ! Xem Console để biết chi tiết."); 
+        } finally { 
+            btn.innerText = "LƯU DỮ LIỆU"; 
+            btn.disabled = false; 
+        }
     }
     
     // BỔ SUNG: Code xử lý bộ lọc tìm kiếm nhanh

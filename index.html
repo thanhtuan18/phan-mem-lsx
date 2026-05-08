@@ -287,17 +287,38 @@
     }
 
     // --- BỔ SUNG: Thêm dòng vào bảng công đoạn ---
+    // function addNewRow(data = {}) {
+    //     const tbody = document.getElementById('detail-body');
+    //     const row = document.createElement('tr');
+    //     row.innerHTML = `
+    //         <td><input type="date" value="${data.record_date || ''}"></td>
+    //         <td><input type="text" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
+    //         <td><input type="text" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
+    //         <td><input type="number" class="tg" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
+    //         <td><input type="number" class="ac" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
+    //         // <td>${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+    //         <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+    //         <td>
+    //             <select>
+    //                 <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
+    //                 <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
+    //             </select>
+    //         </td>
+    //         <td><button onclick="this.parentElement.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer">✕</button></td>
+    //     `;
+    //     tbody.appendChild(row);
+    // }
+
     function addNewRow(data = {}) {
         const tbody = document.getElementById('detail-body');
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><input type="date" value="${data.record_date || ''}"></td>
+            <td><input type="date" value="${data.record_date ? data.record_date.split(' ')[0] : ''}"></td>
             <td><input type="text" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
             <td><input type="text" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
-            <td><input type="number" class="tg" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
-            <td><input type="number" class="ac" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
-            // <td>${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
-            <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
+            <td><input type="number" class="tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
+            <td><input type="number" class="ac-num" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
+            <td class="rate-display">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
             <td>
                 <select>
                     <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
@@ -380,7 +401,7 @@
         const rows = document.querySelectorAll('#detail-body tr');
         rows.forEach(row => {
             const inputs = row.querySelectorAll('input, select');
-            if (inputs.length > 6) {
+            if (inputs.length >= 6) {
                 details.push({
                     date_stat: inputs[0].value,
                     worker: inputs[1].value,

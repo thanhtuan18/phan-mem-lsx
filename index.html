@@ -1,495 +1,203 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống Quản lý LSX</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý tiến độ sản xuất</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap&subset=vietnamese" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-pt="3">
 
-<div id="login-screen" style="display: none;">
-    <div class="login-card">
-        <h2>QUẢN LÝ SẢN XUẤT</h2>
-        <div id="error-box" class="error-msg"></div>
-        <div class="form-group">
-            <label>Tên đăng nhập</label>
-            <input type="text" id="user" placeholder="Nhập tài khoản">
+<!-- Bộ biểu tượng dùng chung -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM7 3v6h8V3M7 21v-7h10v7"/></symbol>
+</svg>
+
+<!-- ============ ĐĂNG NHẬP ============ -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <section class="login-hero">
+      <div class="brand">
+        <div class="brand-mark"><svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></div>
+        <div class="brand-text"><strong>Technoup</strong><span>Tiến độ sản xuất</span></div>
+      </div>
+      <div>
+        <h2>Theo dõi sản xuất mọi lúc, mọi nơi</h2>
+        <p class="hero-copy">Mỗi lệnh sản xuất là một phiếu rõ ràng: công đoạn nào xong, công đoạn nào còn chậm, nhìn một lần là biết.</p>
+      </div>
+      <div class="hero-tickets" aria-hidden="true">
+        <div class="hero-ticket back">
+          <div class="t-line"><span class="code">LSX-2026-00002</span><span class="chip" data-state="ok">Hoàn thành</span></div>
+          <p class="t-name">Quần tây nam</p>
+          <div class="stage-row"><span>Cắt</span><span class="mini-ruler" data-state="ok"><i style="width:100%"></i></span><b>100%</b></div>
+          <div class="stage-row"><span>May</span><span class="mini-ruler" data-state="ok"><i style="width:100%"></i></span><b>100%</b></div>
         </div>
-        <div class="form-group">
-            <label>Mật khẩu</label>
-            <input type="password" id="pass" placeholder="Nhập mật khẩu">
+        <div class="hero-ticket front">
+          <div class="t-line"><span class="code">LSX-2026-00001</span><span class="chip" data-state="info">Đang làm</span></div>
+          <p class="t-name">Áo sơ mi trắng</p>
+          <div class="stage-row"><span>Cắt</span><span class="mini-ruler" data-state="ok"><i style="width:100%"></i></span><b>100%</b></div>
+          <div class="stage-row"><span>May</span><span class="mini-ruler"><i style="width:64%"></i></span><b>64%</b></div>
+          <div class="stage-row"><span>Hoàn thiện</span><span class="mini-ruler"><i style="width:12%"></i></span><b>12%</b></div>
         </div>
-        <button id="login-btn" onclick="handleLogin()">ĐĂNG NHẬP</button>
+      </div>
+    </section>
+
+    <form class="login-card" id="login-form" novalidate>
+      <h2>Đăng nhập</h2>
+      <p class="login-sub">Dùng tài khoản do quản trị viên cấp.</p>
+      <div id="error-box" class="error-msg" role="alert"></div>
+      <div class="form-group"><label for="login-company">Mã công ty</label><input id="login-company" type="text" autocomplete="organization" autocapitalize="none" spellcheck="false" placeholder="Ví dụ: abc"></div>
+      <div class="form-group"><label for="user">Tên đăng nhập</label><input id="user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Nhập tên đăng nhập"></div>
+      <div class="form-group"><label for="pass">Mật khẩu</label><input id="pass" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu"></div>
+      <button id="login-btn" class="btn-primary" type="submit">Đăng nhập</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ ỨNG DỤNG ============ -->
+<div id="main-app" class="app-container">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></div>
+      <div class="brand-text"><strong>Technoup</strong><span>Tiến độ sản xuất</span></div>
     </div>
+
+    <nav class="sidebar-nav" aria-label="Chuyển màn hình"><a class="on" href="index.html">Lệnh sản xuất</a><a href="danh-muc.html">Danh mục</a><a href="tong-quan.html">Tổng quan</a></nav>
+
+    <div class="filter-box">
+      <label class="search"><span class="sr-only">Tìm theo mã LSX</span>
+        <svg class="i"><use href="#i-search"/></svg>
+        <input id="filter-lsx" type="text" placeholder="Tìm mã LSX" autocomplete="off">
+      </label>
+      <div class="filter-grid">
+        <select id="filter-customer" aria-label="Khách hàng"><option value="">Mọi khách hàng</option></select>
+        <select id="filter-stage" aria-label="Công đoạn"><option value="">Mọi công đoạn</option></select>
+      </div>
+      <div class="date-range-group">
+        <div class="date-item"><label for="filter-date-from">Từ ngày</label><input id="filter-date-from" type="date"></div>
+        <div class="date-item"><label for="filter-date-to">Đến ngày</label><input id="filter-date-to" type="date"></div>
+      </div>
+    </div>
+
+    <div class="lsx-list-container">
+      <div class="list-header-flex">
+        <span class="list-label">Lệnh sản xuất</span>
+        <span class="count-pill" id="lsx-count">0</span>
+        <button class="btn-add-main" id="btn-new" type="button"><svg class="i"><use href="#i-plus"/></svg>Thêm mới</button>
+      </div>
+      <div id="lsx-list-items" class="lsx-list"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar" id="user-avatar">A</div>
+      <div class="user-info"><b id="user-name"></b><small id="user-company"></small></div>
+      <button class="logout" id="btn-logout" type="button"><svg class="i" style="width:16px;height:16px"><use href="#i-out"/></svg>Thoát</button>
+    </div>
+  </aside>
+
+  <main class="main-editor">
+    <div class="editor-inner">
+
+      <header class="editor-header">
+        <div>
+          <h1><span class="sr-only">Chi tiết: </span><span id="display-lsx-title">Lệnh mới</span></h1>
+          <div id="display-sub-info"></div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-secondary" id="btn-cancel" type="button">Hủy bỏ</button>
+          <button class="btn-primary" id="btn-save" type="button"><svg class="i"><use href="#i-save"/></svg><span>Lưu dữ liệu</span></button>
+        </div>
+      </header>
+
+      <section class="progress-panel" aria-label="Tiến độ tổng">
+        <div class="ruler" id="ruler" style="--p:0%">
+          <div class="ruler-pin" id="ruler-pin">0%</div>
+          <div class="ruler-track"><span class="ruler-fill"></span></div>
+          <div class="ruler-scale"></div>
+          <div class="ruler-labels"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <dl class="stats">
+          <div><dd id="stat-plan">0</dd><dt>Tổng mục tiêu</dt></div>
+          <div><dd id="stat-actual">0</dd><dt>Tổng thực tế</dt></div>
+          <div><dd id="stat-done">0/0</dd><dt>Công đoạn xong</dt></div>
+        </dl>
+      </section>
+
+      <section class="master-card" id="master-form">
+        <h2 class="section-title">Thông tin lệnh</h2>
+        <div class="form-grid" style="margin-top:16px">
+          <div class="field span-4"><label for="master-customer">Khách hàng</label><input id="master-customer" type="text" maxlength="150" placeholder="Tên khách hàng"></div>
+          <div class="field span-4"><label for="master-product">Sản phẩm</label><input id="master-product" type="text" maxlength="200" placeholder="Tên sản phẩm"></div>
+          <div class="field span-4"><label for="master-status">Trạng thái LSX</label><select id="master-status"></select></div>
+          <div class="field span-3"><label for="master-qty">Số lượng đơn hàng</label><input id="master-qty" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
+          <div class="field span-3"><label for="master-start">Ngày bắt đầu</label><input id="master-start" type="date"></div>
+          <div class="field span-3"><label for="master-due">Hạn giao</label><input id="master-due" type="date"></div>
+          <div class="field span-3"><label for="master-lsx-code">Mã LSX</label>
+            <div class="input-wrap"><input id="master-lsx-code" type="text" readonly><svg class="i"><use href="#i-lock"/></svg></div></div>
+          <div class="field span-9"><label for="master-note">Ghi chú</label><input id="master-note" type="text" maxlength="500" placeholder="Ghi chú thêm (nếu có)"></div>
+          <div class="field span-3"><label for="master-date">Ngày LSX</label>
+            <div class="input-wrap"><input id="master-date" type="date" readonly><svg class="i"><use href="#i-lock"/></svg></div></div>
+        </div>
+      </section>
+
+      <section class="detail-card">
+        <div class="card-header-flex">
+          <h2 class="section-title">Thống kê theo công đoạn</h2>
+          <button class="btn-add" id="btn-add-row" type="button"><svg class="i"><use href="#i-plus"/></svg>Thêm dòng</button>
+        </div>
+        <div class="table-container">
+          <table class="detail-table">
+            <thead><tr>
+              <th>Ngày</th><th>Công đoạn</th><th>Mã</th>
+              <th class="num">Mục tiêu</th><th class="num">Thực tế</th>
+              <th>Tỷ lệ</th><th>Trạng thái</th><th><span class="sr-only">Xóa</span></th>
+            </tr></thead>
+            <tbody id="detail-body"></tbody>
+          </table>
+        </div>
+        <div id="table-empty" class="table-empty" hidden>Chưa có công đoạn nào. Chọn “Thêm dòng” để bắt đầu.</div>
+      </section>
+
+    </div>
+  </main>
 </div>
 
-<div class="app-container" id="main-app" style="display: none;">
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h3>BỘ LỌC TÌM KIẾM</h3>
-            <a href="#" onclick="logout()" style="font-size: 11px; color: red;">Đăng xuất</a>
-        </div>
-        
-        <div class="filter-box">
-            <input type="text" id="filter-lsx" placeholder="Tìm LSX, Sản phẩm, Ghi chú...">
-            <input type="text" id="filter-customer" placeholder="Theo khách hàng...">
-            <select id="filter-stage">
-                <option value="">-- Tất cả công đoạn --</option>
-                <option value="cut">Cắt vải</option>
-                <option value="sew">May thành phẩm</option>
-                <option value="qc">Kiểm tra QC</option>
-            </select>
-            <div class="date-range-group">
-                <div class="date-item">
-                    <label>Từ ngày:</label>
-                    <input type="date" id="filter-date-from">
-                </div>
-                <div class="date-item">
-                    <label>Đến ngày:</label>
-                    <input type="date" id="filter-date-to">
-                </div>
-            </div>
-        </div>
 
-        <div class="lsx-list-container">
-            <div class="list-header-flex">
-                <div class="list-label">DANH SÁCH LỆNH SẢN XUẤT</div>
-                <button class="btn-add-main" onclick="prepareAddNew()">+ THÊM MỚI</button>
-            </div>
-            <div class="lsx-list" id="lsx-list-items"></div>
-        </div>
-    </aside>
+<div class="modal-back" id="modal-back"><form class="modal" id="quick-form" role="dialog" aria-modal="true" aria-labelledby="qm-title" novalidate>
+  <h3 id="qm-title"></h3><p class="modal-sub" id="qm-sub"></p>
+  <div class="modal-err" id="qm-err" role="alert"></div>
+  <div class="field"><label for="qm-name" id="qm-name-label">Tên</label><input id="qm-name" type="text" maxlength="200" autocomplete="off"></div>
+  <div class="modal-row">
+    <div class="field"><label for="qm-code">Mã (không bắt buộc)</label><input id="qm-code" type="text" maxlength="20" autocomplete="off"></div>
+    <div class="field"><label for="qm-extra" id="qm-extra-label"></label><input id="qm-extra" type="text" maxlength="50" autocomplete="off"></div>
+  </div>
+  <div class="field"><label for="qm-note">Ghi chú (không bắt buộc)</label><input id="qm-note" type="text" maxlength="255" autocomplete="off"></div>
+  <div class="modal-actions"><button type="button" class="btn-secondary" id="qm-cancel">Hủy</button><button type="submit" class="btn-primary" id="qm-save">Lưu và chọn</button></div>
+</form></div>
 
-    <main class="main-editor">
-        <header class="editor-header">
-            <div class="title-group">
-                <h1>CHI TIẾT: <span id="display-lsx-title">---</span></h1>
-                <p id="display-sub-info">Chế độ: <strong id="mode-text">Đang tải...</strong></p>
-            </div>
-            <div class="header-actions">
-                <button class="btn-secondary" onclick="cancelAction()">HỦY BỎ</button>
-                <button class="btn-primary" onclick="saveData()">LƯU DỮ LIỆU</button>
-            </div>
-        </header>
+<div class="toast" id="toast" role="status"><svg class="i"><use href="#i-check"/></svg><span id="toast-text"></span></div>
 
-        <section class="form-card master-card">
-            <div class="card-header">Thông tin Lệnh sản xuất (Master)</div>
-            <div class="form-grid">
-                <div class="field">
-                    <label>Ngày LSX (Chỉ xem)</label>
-                    <input type="text" id="master-date" readonly class="readonly-field" value="---">
-                </div>
-                <div class="field">
-                    <label>Mã Lệnh sản xuất (LSX)</label>
-                    <input type="text" id="master-lsx-code" readonly class="readonly-field">
-                </div>
-                <div class="field">
-                    <label>Khách hàng</label>
-                    <input type="text" id="master-customer" placeholder="Nhập tên khách hàng...">
-                </div>
-                <div class="field">
-                    <label>Sản phẩm</label>
-                    <input type="text" id="master-product" placeholder="Tên sản phẩm...">
-                </div>
-                <div class="field">
-                    <label>Trạng thái LSX</label>
-                    <select id="master-status">
-                        <option value="Chưa thực hiện">Chưa thực hiện</option>
-                        <option value="Đang thực hiện">Đang thực hiện</option>
-                        <option value="Hoàn thành">Hoàn thành</option>
-                        <option value="Hủy">Hủy</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label>Ghi chú Lệnh sản xuất</label>
-                    <input type="text" id="master-note" placeholder="Ghi chú quan trọng cho lệnh này...">
-                </div>
-            </div>
-        </section>
-
-        <section class="form-card detail-card">
-            <div class="card-header-flex">
-                <span>Dữ liệu thống kê công đoạn (Detail)</span>
-                <button class="btn-add" onclick="addNewRow()">+ Thêm công đoạn</button>
-            </div>
-            <div class="table-container">
-                <table class="detail-table">
-                    <thead>
-                        <tr>
-                            <th width="12%">Ngày thống kê</th>
-                            <th width="15%">Người thống kê</th>
-                            <th width="15%">Mã công đoạn</th>
-                            <th width="10%">SL Mục tiêu</th>
-                            <th width="10%">SL Thực tế</th>
-                            <th width="8%">Tỉ lệ %</th>
-                            <th width="15%">Trạng thái CĐ</th>
-                            <th width="5%"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="detail-body"></tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-</div>
-
-<!-- <script src="script.js"></script> -->
-<script>
-    const API_BASE = 'https://api-sx.technoup.info/api';
-
-    // 1. Kiểm tra trạng thái đăng nhập khi load trang
-    document.addEventListener('DOMContentLoaded', async () => {
-        const userLoggedStr = localStorage.getItem('user_logged');
-        if (!userLoggedStr) {
-            showLogin(true);
-            return;
-        }
-
-        try {
-            let userData = JSON.parse(userLoggedStr);
-            const payload = JSON.parse(atob(userData.token.split('.')[1]));
-            const now = Math.floor(Date.now() / 1000);
-
-            if (payload.exp < (now + 300)) { // Làm mới nếu còn dưới 5 phút
-                const res = await fetch(`${API_BASE}/auth/refresh`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh_token: userData.refresh_token })
-                });
-
-                const result = await res.json();
-                if (result.status === "success") {
-                    userData.token = result.token;
-                    localStorage.setItem('user_logged', JSON.stringify(userData));
-                } else {
-                    logoutForced();
-                    return;
-                }
-            }
-
-        // Nếu mọi thứ ổn, vào app
-        showLogin(false);
-            fetchLSXList();
-        } catch (e) {
-            console.error("Auth check error:", e);
-            logoutForced();
-        }
-    });
-
-    function showLogin(isLogin) {
-        document.getElementById('login-screen').style.display = isLogin ? 'flex' : 'none';
-        document.getElementById('main-app').style.display = isLogin ? 'none' : 'flex';
-    }
-
-    function logoutForced() {
-        alert("Phiên làm việc đã kết thúc sau 7 ngày. Vui lòng đăng nhập lại.");
-        localStorage.removeItem('user_logged');
-        location.reload();
-    }
-
-    // 2. Hàm đăng xuất
-    function logout() {
-        if(confirm("Bạn muốn đăng xuất?")) {
-            localStorage.removeItem('user_logged');
-            location.reload();
-        }
-    }
-
-    // 3. Xử lý Đăng nhập tương thích với Flask API
-    async function handleLogin() {
-        const u = document.getElementById('user').value.trim();
-        const p = document.getElementById('pass').value.trim();
-        const btn = document.getElementById('login-btn');
-        const err = document.getElementById('error-box');
-
-        if (!u || !p) { alert("Vui lòng nhập đủ tài khoản và mật khẩu!"); return; }
-        
-        btn.innerText = "Đang xác thực...";
-        btn.disabled = true;
-        if(err) err.style.display = 'none';
-
-        try {
-            // ĐƯỜNG DẪN MỚI: Trỏ về subdomain chứa Flask App của bạn
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: u, 
-                    password: p
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.status === "success") {
-                // LƯU Ý: Lưu cả thông tin user và TOKEN vào localStorage
-                // Chúng ta gộp token vào object user để các hàm cũ không bị lỗi
-                const userData = {
-                    ...result.user,
-                    token: result.token,
-                    refresh_token: result.refresh_token // PHẢI LƯU THÊM DÒNG NÀY
-                };
-                localStorage.setItem('user_logged', JSON.stringify(userData));
-                location.reload(); 
-            } else {
-                if(err) { 
-                    err.innerText = result.message || "Tài khoản hoặc mật khẩu không chính xác!"; 
-                    err.style.display = 'block'; 
-                }
-            }
-        } catch (e) {
-            console.error("Login Error:", e);
-            alert("Lỗi kết nối máy chủ Flask!");
-        } finally {
-            btn.innerText = "ĐĂNG NHẬP";
-            btn.disabled = false;
-        }
-    }
-
-    // 3. Lấy danh sách LSX (Có bắt lỗi 401)
-    async function fetchLSXList() {
-        const userData = JSON.parse(localStorage.getItem('user_logged'));
-        try {
-            const res = await fetch(`${API_BASE}/lsx/list`, {
-                headers: { 'Authorization': `Bearer ${userData.token}` }
-            });
-            
-            if (res.status === 401) return logoutForced();
-
-            const result = await res.json();
-            if (result.status === "success" && typeof renderLSXList === "function") {
-                renderLSXList(result.data);
-            }
-        } catch (e) { console.error("Lỗi tải danh sách:", e); }
-    }
-
-    // --- BỔ SUNG: Hiển thị danh sách lên Sidebar ---
-    function renderLSXList(data) {
-        const container = document.getElementById('lsx-list-items');
-        container.innerHTML = '';
-        data.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'lsx-item'; // Hãy đảm bảo có class này trong style.css
-            div.setAttribute('data-customer', (item.customer_name || '').toLowerCase());
-            div.setAttribute('data-status', (item.status || '').toLowerCase());
-            div.setAttribute('data-date', item.created_at || ''); // Giả định định dạng YYYY-MM-DD
-
-            div.style = "padding:10px; border-bottom:1px solid #eee; cursor:pointer";
-            div.onclick = () => loadDetail(item.id);
-            div.innerHTML = `
-                <div style="font-weight:600">${item.lsx_code}</div>
-                <div style="font-size:12px; color:#666">${item.customer_name || 'Khách lẻ'}</div>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    function addNewRow(data = {}) {
-        const tbody = document.getElementById('detail-body');
-        const row = document.createElement('tr');
-
-        // Hàm nội bộ để xử lý ngày an toàn
-        const formatSafeDate = (dateStr) => {
-            if (!dateStr) return '';
-            const d = new Date(dateStr);
-            return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
-        };
-        row.innerHTML = `
-            <td><input type="date" class="col-date" value="${data.record_date ? data.record_date.split(' ')[0] : ''}"></td>
-            <td><input type="text" class="col-name" value="${data.recorder_name || ''}" placeholder="Tên..."></td>
-            <td><input type="text" class="col-code" value="${data.stage_code || ''}" placeholder="CĐ..."></td>
-            <td><input type="number" class="col-tg tg-num" value="${data.target_quantity || 0}" oninput="calcRate(this)"></td>
-            <td><input type="number" class="col-ac ac-num" value="${data.actual_quantity || 0}" oninput="calcRate(this)"></td>
-            <td class="rate-cell">${data.target_quantity ? Math.round(data.actual_quantity/data.target_quantity*100) : 0}%</td>
-            <td>
-                <select class="col-status">
-                    <option value="Đang làm" ${data.stage_status==='Đang làm'?'selected':''}>Đang làm</option>
-                    <option value="Hoàn thành" ${data.stage_status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
-                </select>
-            </td>
-            <td><button type="button" onclick="this.closest('tr').remove()" style="color:red; border:none; background:none; cursor:pointer">✕</button></td>
-        `;
-        tbody.appendChild(row);
-    }
-
-    // --- BỔ SUNG: Tải chi tiết 1 LSX ---
-    async function loadDetail(id) {
-        const userData = JSON.parse(localStorage.getItem('user_logged'));
-        try {
-            const res = await fetch(`${API_BASE}/lsx/detail/${id}`, {
-                headers: { 'Authorization': `Bearer ${userData.token}` }
-            });
-            const result = await res.json();
-            const master = result.master;
-            const details = result.details;
-
-            document.getElementById('display-lsx-title').innerText = master.lsx_code;
-            document.getElementById('mode-text').innerText = "Chỉnh sửa";
-            document.getElementById('master-lsx-code').value = master.lsx_code;
-            document.getElementById('master-customer').value = master.customer_name;
-            document.getElementById('master-product').value = master.product_name;
-            document.getElementById('master-status').value = master.status;
-            document.getElementById('master-note').value = master.note;
-            // document.getElementById('master-date').value = master.created_at || '---';
-            const masterDate = master.created_at ? new Date(master.created_at) : null;
-            document.getElementById('master-date').value = (masterDate && !isNaN(masterDate.getTime())) 
-                ? masterDate.toISOString().split('T')[0] 
-                : '---';
-
-            const tbody = document.getElementById('detail-body');
-            tbody.innerHTML = '';
-            details.forEach(d => addNewRow(d));
-        } catch (e) { alert("Lỗi tải chi tiết!"); }
-    }
-
-    // --- BỔ SUNG: Chế độ thêm mới ---
-    function prepareAddNew() {
-        document.getElementById('display-lsx-title').innerText = "TẠO MỚI";
-        document.getElementById('mode-text').innerText = "Thêm mới";
-        
-        // Chỉ xóa các ô nhập liệu Master
-        document.getElementById('master-customer').value = '';
-        document.getElementById('master-product').value = '';
-        document.getElementById('master-note').value = '';
-        document.getElementById('master-status').value = 'Chưa thực hiện';
-        
-        // Làm trống bảng chi tiết
-        document.getElementById('detail-body').innerHTML = '';
-        
-        // Gán mã và ngày mới
-        document.getElementById('master-lsx-code').value = "LSX-" + Date.now().toString().slice(-6);
-        // FIX TẠI ĐÂY: Dùng định dạng YYYY-MM-DD cho input date
-        // const today = new Date().toISOString().split('T')[0];
-
-        document.getElementById('master-date').value = new Date().toLocaleDateString('vi-VN');
-    }
-
-    function cancelAction() {
-        if(confirm("Hủy bỏ thay đổi?")) fetchLSXList();
-    }
-
-    // 4. Lưu dữ liệu (Đã sửa để lấy cả dữ liệu bảng Detail)
-    async function saveData() {
-        const userData = JSON.parse(localStorage.getItem('user_logged'));
-        const btn = document.querySelector('.btn-primary');
-        
-        // Thu thập thông tin Master
-        const masterData = {
-            lsx_code: document.getElementById('master-lsx-code').value,
-            customer: document.getElementById('master-customer').value,
-            product: document.getElementById('master-product').value,
-            status: document.getElementById('master-status').value,
-            note: document.getElementById('master-note').value
-        };
-
-        if(!masterData.lsx_code) return alert("Không có mã LSX để lưu!");
-
-        // THU THẬP DỮ LIỆU DETAIL TỪ BẢNG (Chỗ này cực kỳ quan trọng)
-        const details = [];
-        const rows = document.querySelectorAll('#detail-body tr');
-        rows.forEach(row => {
-            const elDate = row.querySelector('.col-date');
-            const elName = row.querySelector('.col-name');
-            const elCode = row.querySelector('.col-code');
-            const elTg = row.querySelector('.col-tg');
-            const elAc = row.querySelector('.col-ac');
-            const elStatus = row.querySelector('.col-status');
-
-            // Chỉ đẩy vào mảng nếu dòng này có tồn tại ô Date và đã chọn ngày
-            if (elDate && elDate.value) { 
-                details.push({
-                    record_date: elDate.value,
-                    recorder_name: elName ? elName.value : '',
-                    stage_code: elCode ? elCode.value : '',
-                    target_quantity: elTg ? (elTg.value || 0) : 0,
-                    actual_quantity: elAc ? (elAc.value || 0) : 0,
-                    stage_status: elStatus ? elStatus.value : 'Đang làm'
-                });
-            }
-        });
-
-        const fullData = { ...masterData, details: details };
-
-        btn.innerText = "ĐANG LƯU...";
-        btn.disabled = true;
-
-        try {
-            const res = await fetch(`${API_BASE}/lsx/save`, {
-                method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${userData.token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(fullData)
-            });
-
-            if (res.status === 401) return logoutForced();
-
-            const result = await res.json();
-            if(result.status === "success") {
-                alert("Lưu thành công!");
-                fetchLSXList();
-            } else { alert("Lỗi: " + result.message); }
-        } catch (e) { alert("Lỗi kết nối máy chủ!"); }
-        finally { btn.innerText = "LƯU DỮ LIỆU"; btn.disabled = false; }
-    }
-    
-    // BỔ SUNG: Code xử lý bộ lọc tìm kiếm nhanh
-    // document.getElementById('filter-lsx').addEventListener('input', function(e) {
-    //     const val = e.target.value.toLowerCase();
-    //     const items = document.querySelectorAll('.lsx-item');
-    //     items.forEach(item => {
-    //         item.style.display = item.innerText.toLowerCase().includes(val) ? 'block' : 'none';
-    //     });
-    // });
-
-    // --- THAY THẾ TOÀN BỘ ĐOẠN XỬ LÝ BỘ LỌC CUỐI FILE ---
-    function applyFilters() {
-        const searchVal = document.getElementById('filter-lsx').value.toLowerCase();
-        const customerVal = document.getElementById('filter-customer').value.toLowerCase();
-        const stageVal = document.getElementById('filter-stage').value.toLowerCase();
-        const dateFrom = document.getElementById('filter-date-from').value;
-        const dateTo = document.getElementById('filter-date-to').value;
-
-        const items = document.querySelectorAll('.lsx-item');
-        items.forEach(item => {
-            const text = item.innerText.toLowerCase();
-            const customer = item.getAttribute('data-customer');
-            const status = item.getAttribute('data-status');
-            const date = item.getAttribute('data-date').split(' ')[0]; // Lấy phần YYYY-MM-DD
-
-            let visible = text.includes(searchVal) && customer.includes(customerVal);
-            
-            if (stageVal && !status.includes(stageVal)) visible = false;
-            if (dateFrom && date < dateFrom) visible = false;
-            if (dateTo && date > dateTo) visible = false;
-
-            item.style.display = visible ? 'block' : 'none';
-        });
-    }
-
-    // Gắn sự kiện cho tất cả các ô lọc
-    ['filter-lsx', 'filter-customer', 'filter-stage', 'filter-date-from', 'filter-date-to'].forEach(id => {
-        document.getElementById(id).addEventListener('input', applyFilters);
-        document.getElementById(id).addEventListener('change', applyFilters);
-    });
-
-    // Hàm này giúp khi bạn gõ số đến đâu, % nhảy đến đấy
-    function calcRate(el) {
-        const row = el.closest('tr');
-        const tg = parseFloat(row.querySelector('.tg-num').value) || 0;
-        const ac = parseFloat(row.querySelector('.ac-num').value) || 0;
-        const cell = row.querySelector('.rate-cell'); // Phải khớp với class ở Bước 1
-        
-        if (tg > 0) {
-            cell.innerText = Math.round(ac / tg * 100) + '%';
-        } else {
-            cell.innerText = '0%';
-        }
-    }
-
-</script>
+<script src="js/config.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/quick.js"></script>
+<script src="js/lsx-list.js"></script>
+<script src="js/lsx-form.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

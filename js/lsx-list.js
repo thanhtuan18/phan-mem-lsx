@@ -54,4 +54,13 @@ const List = {
   },
   debounce() { clearTimeout(List.timer); List.timer = setTimeout(() => List.load().catch(handleError), 300); },
   setActive(id) { List.currentId = id; List.render(); },
+  toggleFilters() {
+    const box = document.querySelector('.filter-box');
+    const open = box.classList.toggle('open');
+    $('btn-filter').setAttribute('aria-expanded', open ? 'true' : 'false');
+  },
+  markFilters() {                // chấm báo trên nút Bộ lọc khi đang lọc theo khách / công đoạn / ngày
+    const on = ['filter-customer', 'filter-stage', 'filter-date-from', 'filter-date-to'].some(id => $(id).value);
+    $('btn-filter').classList.toggle('has', on);
+  },
 };

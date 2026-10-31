@@ -1,4 +1,24 @@
 'use strict';
+// Điện thoại: 2 màn hình (danh sách / chi tiết). Màn rộng bỏ qua giá trị này (CSS chỉ áp dụng ≤1000px).
+const View = {
+  current: 'list',
+  booting: false,
+  set(v, silent) {
+    View.current = v;
+    $('main-app').dataset.view = v;
+    if (!silent) window.scrollTo(0, 0);
+  },
+  show() {                       // vào màn chi tiết, thêm 1 bước lịch sử để nút Back của điện thoại quay về danh sách
+    if (View.current !== 'form' && !View.booting) history.pushState({ v: 'form' }, '');
+    View.set('form');
+  },
+  onPop() {                      // nút Back của điện thoại / trình duyệt
+    if (View.current !== 'form') return;
+    if (Form.dirty && !confirm('Bạn có thay đổi chưa lưu. Bỏ thay đổi và quay lại danh sách?')) { history.pushState({ v: 'form' }, ''); return; }
+    Form.discard(); View.set('list');
+  },
+};
+
 const Form = {
   id: null,      // null = đang thêm mới
   data: null,    // dữ liệu gốc từ máy chủ
@@ -10,12 +30,14 @@ const Form = {
     Form.id = id; Form.data = d;
     Form.fill(d);
     List.setActive(id);
+    View.show();
   },
   startNew() {
     if (Form.dirty && !confirm('Bạn có thay đổi chưa lưu. Bỏ thay đổi và tạo lệnh mới?')) return;
     Form.id = null; Form.data = null;
     Form.fill({ lsx_code: '', lsx_date: todayISO(), start_date: todayISO(), due_date: '', customer: '', product: '', order_qty: '', status: 'in_progress', note: '', rows: [] });
     List.setActive(null);
+    View.show();
     $('master-customer').focus();
   },
   fill(d) {
@@ -144,9 +166,21 @@ const Form = {
       toast('Đã lưu dữ liệu');
     } catch (e) { handleError(e); } finally { btn.disabled = false; }
   },
+  discard() {                    // bỏ thay đổi, trả form về dữ liệu đã lưu
+    Form.dirty = false;
+    if (Form.id !== null && Form.data) Form.fill(Form.data);
+    else Form.fill({ lsx_code: '', lsx_date: todayISO(), start_date: todayISO(), due_date: '', customer: '', product: '', order_qty: '', status: 'in_progress', note: '', rows: [] });
+  },
   cancel() {
     if (Form.dirty && !confirm('Bỏ các thay đổi chưa lưu?')) return;
     Form.dirty = false;
     if (Form.id !== null && Form.data) Form.fill(Form.data); else Form.startNew();
+    if (window.matchMedia('(max-width:1000px)').matches) Form.back(true);   // điện thoại: Hủy bỏ = quay về danh sách
+  },
+  back(skipAsk) {
+    if (!skipAsk && Form.dirty && !confirm('Bạn có thay đổi chưa lưu. Bỏ thay đổi và quay lại danh sách?')) return;
+    Form.discard();
+    if (View.current === 'form' && history.state && history.state.v === 'form') history.back();   // onPop sẽ đưa về danh sách
+    else View.set('list');
   },
 };

@@ -8,7 +8,9 @@ async function enterApp() {
   paintUser();
   showScreen('app');
   await Promise.all([List.load(), List.loadFilters(), Catalog.loadAllActive()]);
-  if (List.items.length) await Form.open(List.items[0].id); else Form.startNew();
+  View.booting = true;
+  try { if (List.items.length) await Form.open(List.items[0].id); else Form.startNew(); } finally { View.booting = false; }
+  View.set('list', true);   // điện thoại: mở app ở màn danh sách
 }
 
 async function onLogin(ev) {
@@ -41,9 +43,12 @@ async function start() {
   $('btn-new').addEventListener('click', () => Form.startNew());
   $('btn-save').addEventListener('click', () => Form.save());
   $('btn-cancel').addEventListener('click', () => Form.cancel());
+  $('btn-back').addEventListener('click', () => Form.back());
+  $('btn-filter').addEventListener('click', () => List.toggleFilters());
+  window.addEventListener('popstate', () => View.onPop());
   $('btn-add-row').addEventListener('click', () => Form.addRow());
   ['filter-lsx', 'filter-customer', 'filter-stage', 'filter-date-from', 'filter-date-to']
-    .forEach(id => $(id).addEventListener(id === 'filter-lsx' ? 'input' : 'change', List.debounce));
+    .forEach(id => $(id).addEventListener(id === 'filter-lsx' ? 'input' : 'change', () => { List.markFilters(); List.debounce(); }));
   $('master-status').replaceChildren(...Object.entries(STATUS_ORDER).map(([k, v]) => h('option', { value: k, text: v })));
   ['master-customer', 'master-product', 'master-qty', 'master-start', 'master-due', 'master-status', 'master-note']
     .forEach(id => $(id).addEventListener('input', () => { Form.dirty = true; if (Form.data !== undefined) Form.header({ lsx_code: Form.data ? Form.data.lsx_code : '' }); }));

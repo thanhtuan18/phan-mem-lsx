@@ -67,7 +67,7 @@
 </div>
 
 <!-- ============ ỨNG DỤNG ============ -->
-<div id="main-app" class="app-container">
+<div id="main-app" class="app-container" data-view="list">
 
   <aside class="sidebar">
     <div class="brand">
@@ -78,10 +78,14 @@
     <nav class="sidebar-nav" aria-label="Chuyển màn hình"><a class="on" href="index.html">Lệnh sản xuất</a><a href="danh-muc.html">Danh mục</a><a href="tong-quan.html">Tổng quan</a></nav>
 
     <div class="filter-box">
-      <label class="search"><span class="sr-only">Tìm theo mã LSX</span>
-        <svg class="i"><use href="#i-search"/></svg>
-        <input id="filter-lsx" type="text" placeholder="Tìm mã LSX" autocomplete="off">
-      </label>
+      <div class="filter-row">
+        <label class="search"><span class="sr-only">Tìm theo mã LSX</span>
+          <svg class="i"><use href="#i-search"/></svg>
+          <input id="filter-lsx" type="text" placeholder="Tìm mã LSX" autocomplete="off">
+        </label>
+        <button class="filter-toggle" id="btn-filter" type="button" aria-expanded="false" aria-controls="filter-more">Bộ lọc<span class="dot"></span></button>
+      </div>
+      <div class="filter-more" id="filter-more">
       <div class="filter-grid">
         <select id="filter-customer" aria-label="Khách hàng"><option value="">Mọi khách hàng</option></select>
         <select id="filter-stage" aria-label="Công đoạn"><option value="">Mọi công đoạn</option></select>
@@ -89,6 +93,7 @@
       <div class="date-range-group">
         <div class="date-item"><label for="filter-date-from">Từ ngày</label><input id="filter-date-from" type="date"></div>
         <div class="date-item"><label for="filter-date-to">Đến ngày</label><input id="filter-date-to" type="date"></div>
+      </div>
       </div>
     </div>
 
@@ -110,6 +115,8 @@
 
   <main class="main-editor">
     <div class="editor-inner">
+
+      <div class="m-back"><button id="btn-back" type="button"><svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="m15 5-7 7 7 7"/></svg>Danh sách</button></div>
 
       <header class="editor-header">
         <div>

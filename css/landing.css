@@ -1,0 +1,148 @@
+/* Trang giới thiệu. Cùng bộ màu và phông với phần mềm. Họa tiết nhận diện: thước đo có vạch chia. */
+:root {
+  --ink: #14263B; --ink-2: #4A5C72; --ink-3: #5E7086;
+  --mist: #EEF4F3; --paper: #FFFFFF; --line: #D5E2DF; --line-strong: #BCCCC8;
+  --accent: #0E9F8E; --accent-ink: #0A7468; --accent-soft: #DDF4F0;
+  --bad: #D92D20; --bad-soft: #FCE4E1; --bad-ink: #A3231A;
+  --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --gutter: clamp(16px, 4vw, 40px);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--mist); color: var(--ink); font: 400 17px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; height: auto; }
+h1, h2, h3, p, figure, ol { margin: 0; padding: 0; }
+a { color: var(--accent-ink); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+
+/* Nút */
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 28px; border: 0; border-radius: 999px;
+  background: var(--accent); color: #fff; font: 600 17px/1 var(--font); text-decoration: none; cursor: pointer;
+  box-shadow: 0 10px 22px -12px rgba(14,159,142,.9); transition: background .15s, transform .1s; }
+.btn:hover { background: var(--accent-ink); }
+.btn:active { transform: translateY(1px); }
+.btn[disabled] { opacity: .7; cursor: progress; }
+.btn-sm { height: 40px; padding: 0 20px; font-size: 15px; box-shadow: none; }
+.btn-block { width: 100%; }
+
+/* Thanh trên */
+.top { position: sticky; top: 0; z-index: 10; background: rgba(238,244,243,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top-in { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); }
+.logo-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: var(--accent); }
+.logo-mark svg { width: 21px; height: 21px; }
+.logo-text { display: flex; flex-direction: column; line-height: 1.15; }
+.logo-text strong { font-size: 18px; font-weight: 700; }
+.logo-text small { font-size: 12.5px; color: var(--ink-2); }
+.top-nav { display: flex; align-items: center; gap: 22px; }
+.link-login { color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; }
+.link-login:hover { color: var(--accent-ink); }
+
+/* Đầu trang */
+.hero { padding: clamp(32px, 5vw, 64px) 0 clamp(32px, 5vw, 56px); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
+.hero h1 { font-size: clamp(32px, 3.7vw, 46px); line-height: 1.1; font-weight: 800; letter-spacing: -.01em; }
+.lead { margin-top: 20px; font-size: clamp(17px, 1.6vw, 20px); color: var(--ink-2); max-width: 30em; }
+.hero-cta { margin-top: 30px; }
+.fine { margin-top: 14px; font-size: 14.5px; color: var(--ink-3); }
+.hero-shot { position: relative; padding-bottom: 8%; }
+.shot-desk { width: 100%; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 40px 70px -40px rgba(20,38,59,.55); background: var(--paper); }
+.shot-phone { position: absolute; left: -4%; bottom: 0; width: 25%; border-radius: 22px; border: 6px solid var(--ink); box-shadow: 0 30px 50px -24px rgba(20,38,59,.7); background: var(--paper); }
+
+/* Thước đo: vạch chia ngăn các phần */
+.ruler { height: 26px; margin: 0 auto; max-width: 1180px; padding: 0 var(--gutter); background:
+  repeating-linear-gradient(90deg, var(--line-strong) 0 2px, transparent 2px 24px) left bottom / 100% 10px no-repeat,
+  repeating-linear-gradient(90deg, var(--ink-3) 0 2px, transparent 2px 120px) left bottom / 100% 20px no-repeat;
+  background-origin: content-box; background-clip: content-box; opacity: .55; }
+
+.sec-title { font-size: clamp(26px, 3.2vw, 38px); line-height: 1.2; font-weight: 800; letter-spacing: -.005em; }
+.sec-sub { margin-top: 10px; color: var(--ink-2); }
+section { padding: clamp(36px, 5.5vw, 68px) 0; }
+
+/* Vấn đề */
+.problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 36px; border-top: 2px solid var(--ink); }
+.problem-grid p { padding: 22px 28px 0 0; font-size: clamp(18px, 1.8vw, 22px); line-height: 1.4; font-weight: 600; }
+.problem-grid p + p { padding-left: 28px; border-left: 1px solid var(--line-strong); }
+
+/* Giá trị */
+.row { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(24px, 5vw, 64px); align-items: center; margin-top: clamp(32px, 4.5vw, 56px); }
+.row-flip { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+.row-flip .row-text { order: 2; }
+.row h3, .step h3 { font-size: clamp(21px, 2.2vw, 26px); line-height: 1.25; font-weight: 700; }
+.row-text p, .step-text p { margin-top: 10px; color: var(--ink-2); }
+.row-img img, .step figure img { border-radius: 14px; border: 1px solid var(--line); background: var(--paper); box-shadow: 0 26px 46px -34px rgba(20,38,59,.5); }
+
+/* Cách dùng */
+.steps { list-style: none; margin-top: 12px; }
+.step { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(24px, 5vw, 64px); align-items: center; margin-top: clamp(36px, 5vw, 64px); }
+.step-no { display: inline-grid; place-items: center; width: 40px; height: 40px; margin-bottom: 14px; border-radius: 50%; background: var(--ink); color: #fff; font-weight: 700; font-size: 18px; }
+.phone-fig { display: flex; justify-content: center; }
+.phone-fig img { width: min(100%, 280px); border: 6px solid var(--ink) !important; border-radius: 26px !important; max-height: 520px; object-fit: cover; object-position: top; }
+
+/* Điện thoại */
+.mobile { background: var(--paper); border-block: 1px solid var(--line); }
+.phones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 3vw, 40px); max-width: 860px; margin: 40px auto 0; }
+.phones figure { text-align: center; }
+.phones img { width: 100%; border: 6px solid var(--ink); border-radius: 26px; box-shadow: 0 30px 50px -30px rgba(20,38,59,.6); aspect-ratio: 520 / 900; object-fit: cover; object-position: top; background: var(--mist); }
+.phones figure:nth-child(2) { margin-top: 28px; }
+.phones figcaption { margin-top: 14px; font-weight: 600; color: var(--ink-2); font-size: 15px; }
+
+/* Hỏi đáp */
+.faq-in { max-width: 820px; }
+.faq-list { margin-top: 28px; border-top: 2px solid var(--ink); }
+details { border-bottom: 1px solid var(--line-strong); }
+summary { position: relative; padding: 20px 44px 20px 0; font-weight: 600; font-size: 18px; cursor: pointer; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: ''; position: absolute; right: 6px; top: 50%; width: 10px; height: 10px; margin-top: -8px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); transition: transform .2s; }
+details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+details p { padding: 0 0 22px; color: var(--ink-2); }
+
+/* Đăng ký */
+.signup { background: var(--ink); color: #fff; }
+.signup-in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(28px, 6vw, 80px); align-items: start; }
+.signup-copy h2 { font-size: clamp(28px, 3.6vw, 44px); line-height: 1.15; font-weight: 800; }
+.signup-copy p { margin-top: 16px; color: #C4D3E0; max-width: 24em; }
+.su-form, .sent { background: var(--paper); color: var(--ink); border-radius: 18px; padding: clamp(22px, 3vw, 34px); }
+.fld { margin-bottom: 16px; }
+.fld label { display: block; margin-bottom: 6px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+.fld input { width: 100%; height: 50px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff; font: 400 16px/1 var(--font); color: var(--ink); }
+.fld input::placeholder { color: #7B8CA0; }
+.fld input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,159,142,.22); }
+.fld-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.hint { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: var(--ink-3); }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.agree { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 18px; font-size: 14.5px; color: var(--ink-2); cursor: pointer; }
+.agree input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.error-msg { display: none; margin-bottom: 16px; padding: 11px 14px; border-radius: 10px; background: var(--bad-soft); color: var(--bad-ink); font-size: 15px; font-weight: 500; border-left: 4px solid var(--bad); }
+.sent h3 { font-size: 24px; line-height: 1.2; }
+.sent p { margin-top: 10px; color: var(--ink-2); }
+.sent .note { padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 500; }
+
+/* Chân trang */
+.foot { padding: 26px 0; background: var(--ink); color: #9FB2C4; border-top: 1px solid #27405A; font-size: 14.5px; }
+.foot-in { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; }
+.foot a { color: #C4D3E0; margin-left: 22px; }
+.foot-links a:first-child { margin-left: 0; }
+
+/* Màn hình nhỏ */
+@media (max-width: 900px) {
+  .hero-grid, .row, .row-flip, .step, .signup-in { grid-template-columns: 1fr; }
+  .row-flip .row-text { order: 0; }
+  .hero-shot { margin-top: 8px; padding-bottom: 12%; }
+  .shot-phone { left: 2%; width: 30%; }
+  .problem-grid { grid-template-columns: 1fr; border-top: 0; }
+  .problem-grid p, .problem-grid p + p { padding: 18px 0; border-left: 0; border-top: 1px solid var(--line-strong); }
+  .problem-grid p:first-child { border-top: 2px solid var(--ink); }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .logo-text small { display: none; }
+  .link-login { display: none; }
+  .fld-2 { grid-template-columns: 1fr; gap: 0; }
+  .phones { gap: 10px; }
+  .phones img { border-width: 4px; border-radius: 16px; }
+  .phones figure:nth-child(2) { margin-top: 16px; }
+  .phones figcaption { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, summary::after { transition: none; } }

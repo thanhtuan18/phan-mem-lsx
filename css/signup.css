@@ -16,3 +16,6 @@
 .su-facts dd { margin: 0 0 8px; font-weight: 600; }
 .su-facts dd:last-child { margin-bottom: 0; }
 @media (max-width: 520px) { .su-card { padding: 24px 20px 22px; } .su-card h1 { font-size: 26px; } }
+
+.su-agree { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 8px; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.su-agree input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }

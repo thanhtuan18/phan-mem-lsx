@@ -13,6 +13,7 @@
         phone: $('su-phone').value.trim(), email: $('su-email').value.trim(), website: $('su-website').value,
       };
       if (!body.company_name || !body.company_code || !body.phone || !body.email) { err('Hãy điền đủ các ô.'); return; }
+      if (!$('su-agree').checked) { err('Hãy đồng ý với chính sách bảo mật để tiếp tục.'); return; }
       busy(true, 'Đang gửi…');
       try {
         await rawFetch('/signup', { method: 'POST', body });

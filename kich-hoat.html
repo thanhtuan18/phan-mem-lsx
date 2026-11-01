@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Kích hoạt tài khoản</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap&subset=vietnamese" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/signup.css">
+</head>
+<body>
+<div class="su-page">
+  <div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></div><div class="brand-text"><strong>Technoup</strong><span>Tiến độ sản xuất</span></div></div>
+  <div class="su-card" id="su-loading"><p class="su-sub" style="margin:0">Đang kiểm tra liên kết…</p></div>
+  <div class="su-card" id="su-bad" hidden>
+    <h1>Liên kết không dùng được</h1>
+    <p class="su-sub" id="su-bad-msg">Liên kết không hợp lệ hoặc đã hết hạn.</p>
+    <a class="btn-primary" href="dang-ky.html" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Đăng ký lại</a>
+  </div>
+  <form class="su-card" id="su-form" novalidate hidden>
+    <h1>Đặt mật khẩu</h1>
+    <p class="su-sub">Chỉ còn một bước để kích hoạt tài khoản.</p>
+    <dl class="su-facts"><dt>Công ty</dt><dd id="su-name"></dd><dt>Mã công ty</dt><dd id="su-code"></dd><dt>Tên đăng nhập</dt><dd id="su-user"></dd></dl>
+    <div id="error-box" class="error-msg" role="alert"></div>
+    <div class="form-group"><label for="su-pass">Mật khẩu</label><input id="su-pass" type="password" autocomplete="new-password" placeholder="Từ 8 ký tự trở lên"></div>
+    <div class="form-group"><label for="su-pass2">Nhập lại mật khẩu</label><input id="su-pass2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu"></div>
+    <button id="su-btn" class="btn-primary" type="submit">Kích hoạt tài khoản</button>
+  </form>
+  <div class="su-card" id="su-ok" hidden>
+    <h1>Đã kích hoạt</h1>
+    <p class="su-sub">Tài khoản đã sẵn sàng. Đăng nhập bằng mã công ty <b id="su-ok-code"></b> và tên đăng nhập <b id="su-ok-user"></b>.</p>
+    <a class="btn-primary" href="index.html" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Đến trang đăng nhập</a>
+  </div>
+</div>
+<script src="js/config.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/api.js"></script>
+<script src="js/signup-page.js"></script>
+</body>
+</html>
